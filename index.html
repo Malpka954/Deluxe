@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Clicker Deluxe v5.4 - Kompletny i Poprawiony</title>
+    <style>
+        /* --- Style bez zmian --- */
+        body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #121212, #1f1f1f); color: #fff; display: flex; flex-direction: column; align-items: center; padding-bottom: 80px; min-height: 100vh; position: relative; transition: background 0.5s ease-in-out; }
+        h1 { color: gold; text-shadow: 2px 2px 4px #000; margin-top: 20px; margin-bottom: 5px; }
+        .container { width: 90%; max-width: 700px; display: flex; flex-direction: column; align-items: center; }
+        .stats, .shop, .gold-shop, .skins-shop, .themes-shop, .prestige, .missions, .ranking { background-color: #2c2c2c; padding: 20px; margin: 10px 0; border-radius: 12px; width: 100%; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5); box-sizing: border-box; }
+        h2 { margin-top: 0; color: #ffc107; border-bottom: 1px solid #444; padding-bottom: 10px; margin-bottom: 15px; }
+        button { padding: 10px 20px; margin: 8px 5px; border: none; border-radius: 8px; background: gold; color: #000; font-size: 15px; font-weight: bold; cursor: pointer; transition: background-color 0.3s, box-shadow 0.3s, transform 0.1s, border-color 0.3s, color 0.3s; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); vertical-align: middle; }
+        button:hover:not(:disabled) { background: orange; box-shadow: 0 6px 8px rgba(0, 0, 0, 0.4); }
+        button:active:not(:disabled) { transform: translateY(1px); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); }
+        button:disabled { background-color: #555; color: #999; cursor: not-allowed; box-shadow: none; opacity: 0.6; }
+        #clickerBtn { font-size: 24px; padding: 20px 40px; border-radius: 50px; margin-top: 20px; margin-bottom: 10px; border: 3px solid #fff; box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4); display: block; margin-left: auto; margin-right: auto; transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease; }
+        .skin-default { background: #ffc107; color: #1f1f1f; border-color: #fff; } .skin-default:hover:not(:disabled) { background: #ffa000; } .skin-lava { background: linear-gradient(135deg, #ff4e00, #ff8c00); color: white; border-color: #ffcc00; text-shadow: 1px 1px 2px black; } .skin-lava:hover:not(:disabled) { background: linear-gradient(135deg, #ff6a00, #ffa500); box-shadow: 0 8px 20px rgba(255, 100, 0, 0.5); } .skin-ice { background: linear-gradient(135deg, #00c6ff, #0072ff); color: white; border-color: #ccf2ff; text-shadow: 1px 1px 2px black; } .skin-ice:hover:not(:disabled) { background: linear-gradient(135deg, #20d6ff, #2082ff); box-shadow: 0 8px 20px rgba(0, 150, 255, 0.5); } .skin-toxic { background: linear-gradient(135deg, #7fff00, #32cd32); color: black; border-color: #a0ff50; text-shadow: 1px 1px 1px #555; } .skin-toxic:hover:not(:disabled) { background: linear-gradient(135deg, #9fff20, #52ed52); box-shadow: 0 8px 20px rgba(100, 255, 50, 0.5); } .skin-gold { background: linear-gradient(135deg, #f7d700, #f5be00); color: #4d3800; border: 4px solid #fff9c4; box-shadow: 0 0 20px gold; } .skin-gold:hover:not(:disabled) { background: linear-gradient(135deg, #ffea30, #ffce30); box-shadow: 0 0 30px gold, 0 0 15px white; }
+        .upgrade-item, .mission-item, .skin-item, .theme-item { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #444; } .upgrade-item:last-child, .mission-item:last-child, .skin-item:last-child, .theme-item:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; } .upgrade-item > div, .mission-item > div, .skin-item > div, .theme-item > div { flex-grow: 1; margin-right: 10px; } .upgrade-item p, .mission-item p, .skin-item p, .theme-item p { margin: 5px 0; font-size: 14px; color: #ccc; line-height: 1.4; } .upgrade-item button, .mission-item button, .skin-item button, .theme-item button { flex-shrink: 0; } .mission-item p { display: inline; } .mission-status { font-weight: bold; margin-left: 10px; } .completed { color: lightgreen; } .claimed { color: grey; } .not-completed { color: orange; } .claimable { color: lightblue; font-weight: bold; }
+        #notification-bar { position: fixed; bottom: 0; left: 0; width: 100%; color: gold; text-align: center; padding: 12px 0; font-size: 16px; font-weight: bold; z-index: 1000; opacity: 0; transform: translateY(100%); transition: opacity 0.5s ease-out, transform 0.5s ease-out, background-color 0.3s ease; box-shadow: 0 -2px 10px rgba(0,0,0,0.5); } #notification-bar.show { opacity: 1; transform: translateY(0); } #notification-bar.info { background-color: rgba(44, 44, 44, 0.95); color: #eee; } #notification-bar.success { background-color: rgba(76, 175, 80, 0.95); color: white; } #notification-bar.warning { background-color: rgba(255, 152, 0, 0.95); color: black; } #notification-bar.error { background-color: rgba(244, 67, 54, 0.95); color: white; }
+        .stats p { font-size: 1.1em; margin: 10px 0; } span { font-weight: bold; color: gold; } .description-label { color: #bbb; font-weight: normal; } .timer { font-style: italic; color: cyan; } .skin-preview, .theme-preview { display: inline-block; width: 25px; height: 25px; border: 1px solid #555; border-radius: 5px; margin-right: 10px; vertical-align: middle; }
+        .skin-item strong, .theme-item strong { vertical-align: middle; }
+        #secretCodeInput { padding: 5px 8px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #444; background-color: #222; color: #888; border-radius: 5px; font-size: 12px; width: 150px; text-align: center; display: block; margin-left: auto; margin-right: auto; } #secretCodeInput::placeholder { color: #666; }
+        #cheatMenu { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 450px; background-color: rgba(10, 10, 10, 0.95); border: 2px solid gold; border-radius: 15px; padding: 25px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7); z-index: 2000; color: #eee; text-align: center; }
+        #cheatMenu h3 { color: gold; margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid #555; padding-bottom: 10px; } #cheatMenu label { display: block; margin: 10px 0 5px; font-size: 14px; color: #ccc; text-align: left; } #cheatMenu input[type="number"] { width: calc(100% - 22px); padding: 10px; margin-bottom: 15px; border: 1px solid #555; border-radius: 5px; background-color: #333; color: #eee; font-size: 16px; } #cheatMenu button { margin-top: 10px; margin-left: 5px; margin-right: 5px; background-color: #444; color: gold; border: 1px solid gold; } #cheatMenu button:hover { background-color: #555; color: orange; border-color: orange; }
+        #cheatMenu .cheat-section { border-top: 1px dashed #555; margin-top: 20px; padding-top: 15px; }
+        #cheatMenu .close-btn { margin-top: 20px; background-color: #800; color: #fff; border: 1px solid #f55; } #cheatMenu .close-btn:hover { background-color: #a00; border-color: #f88; }
+        body.theme-default { background: linear-gradient(135deg, #121212, #1f1f1f); }
+        body.theme-galaxy { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); }
+        .theme-preview.theme-galaxy { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); }
+        .theme-preview.theme-default { background: linear-gradient(135deg, #121212, #1f1f1f); }
+    </style>
+</head>
+<body class="theme-default">
+
+    <h1>Ultimate Clicker Deluxe v5.4 - Kompletny i Poprawiony</h1>
+    <input type="text" id="secretCodeInput" placeholder="Wpisz kod...">
+
+    <div class="container">
+        <div class="stats">
+            <h2>Statystyki</h2>
+            <p><span class="description-label">Punkty:</span> <span id="points">0</span></p>
+            <p><span class="description-label">Złoto:</span> <span id="gold">0</span></p>
+            <p><span class="description-label">Łącznie kliknięć:</span> <span id="totalClicks">0</span></p>
+            <p><span class="description-label">Punkty za Kliknięcie (PPC):</span> <span id="ppc">1</span></p>
+            <p><span class="description-label">Punkty na Sekundę (PPS):</span> <span id="pps">0</span></p>
+            <p><span class="description-label">Mnożnik Prestiżu (bazowy):</span> x<span id="prestigeMultiplier">1.0</span></p>
+            <p><span class="description-label">Redukcja Kosztów:</span> <span id="discountPercentage">0</span>%</p>
+            <p id="frenzyTimer" class="timer" style="display: none;">Szał Punktów: <span id="frenzyTimeLeft">0</span>s</p>
+            <button id="clickerBtn">Kliknij!</button>
+        </div>
+
+        <div class="shop">
+            <h2>Ulepszenia (<span class="description-label">Punkty</span>)</h2>
+            <div id="upgradesContainer"></div>
+        </div>
+
+        <div class="gold-shop">
+            <h2>Bonusy (<span class="description-label">Złoto</span>)</h2>
+             <div id="goldUpgradesContainer"></div>
+        </div>
+
+        <div class="skins-shop">
+             <h2>Skórki Przycisku (<span class="description-label">Złoto</span>)</h2>
+             <div id="skinsContainer"></div>
+        </div>
+
+        <div class="themes-shop">
+             <h2>Motywy Tła (<span class="description-label">Złoto</span>)</h2>
+             <div id="themesContainer"></div>
+        </div>
+
+        <div class="prestige">
+            <h2>PRESTIŻ</h2>
+            <div class="upgrade-item">
+                <div>
+                    <p><span class="description-label">Resetuj postępy, aby zyskać <span id="prestigeGoldReward">1</span> Złota i zwiększyć Mnożnik Prestiżu.</span></p>
+                    <p><span class="description-label">Wymagane Punkty:</span> <span id="prestigeCost">10000</span></p>
+                    <p><span class="description-label">Aktualny Mnożnik (bazowy):</span> x<span id="prestigeMultiplierValue">1.0</span> <span class="description-label">→ Po prestiżu:</span> x<span id="nextPrestigeMultiplierValue">1.1</span></p>
+                    <p id="prestigeStartBonusInfo" style="display: none;"><span class="description-label">Dodatkowo zaczniesz z <span id="prestigeStartBonusLevel">0</span> poziomami Siły Kliknięcia!</span></p>
+                </div>
+                <button id="prestigeBtn">Wykonaj Prestiż!</button>
+            </div>
+        </div>
+
+        <div class="missions">
+            <h2>Misje</h2>
+            <div id="missionsContainer"></div>
+        </div>
+
+        <div class="ranking">
+            <h2>Ranking</h2>
+            <p><span class="description-label">Najlepszy wynik (tej sesji):</span> <span id="bestScore">0</span></p>
+            <p><span class="description-label">Najwięcej punktów (kiedykolwiek):</span> <span id="allTimeBestScore">0</span></p>
+        </div>
+    </div>
+
+    <div id="notification-bar">Wiadomość...</div>
+
+    <div id="cheatMenu">
+        <h3>Tajne Menu</h3>
+        <label for="cheatPoints">Punkty do dodania:</label>
+        <input type="number" id="cheatPoints" placeholder="Wpisz liczbę punktów" min="0">
+        <button id="cheatAddPointsBtn">Dodaj Punkty</button>
+        <label for="cheatGold">Złoto do dodania:</label>
+        <input type="number" id="cheatGold" placeholder="Wpisz liczbę złota" min="0">
+        <button id="cheatAddGoldBtn">Dodaj Złoto</button>
+
+        <div class="cheat-section">
+             <button id="cheatMaxAllBtn">Max Wszystko</button>
+        </div>
+
+        <button id="cheatCloseBtn" class="close-btn">Zamknij</button>
+    </div>
+
+    <script>
+        console.log("Script execution started."); // Log startowy
+
+        // --- Formatowanie liczb ---
+        function formatNumber(num) {
+            if (num === null || num === undefined || isNaN(num)) return "Błąd";
+             num = Math.floor(num);
+             if (num === Infinity) return "Nieskończoność";
+             if (num < 10000) return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+             if (num < 1000000) return (num / 1000).toFixed(1).replace('.', ',') + ' tys.';
+             if (num < 1000000000) return (num / 1000000).toFixed(1).replace('.', ',') + ' mln';
+             if (num < 1000000000000) return (num / 1000000000).toFixed(1).replace('.', ',') + ' mld';
+             return (num / 1000000000000).toFixed(1).replace('.', ',') + ' bln';
+        }
+
+        // --- Stan Gry ---
+        let gameState = {
+            points: 0, gold: 0, totalClicks: 0, bestScore: 0, allTimeBestScore: 0,
+            prestigeLevel: 0,
+            pointFrenzyActive: false, pointFrenzyEndTime: 0,
+            lastUpdateTimestamp: Date.now(),
+            unlockedSkinIds: ['default'], activeSkinId: 'default',
+            unlockedThemeIds: ['default'], activeThemeId: 'default'
+        };
+
+        // --- Funkcje Pomocnicze (Bezpieczny dostęp) ---
+        function getSafeLevel(upgrade) { return upgrade?.level || 0; }
+        function getSafeEffectBase(upgrade) { return upgrade?.effectBase || 0; }
+        function getSafePurchased(upgrade) { return upgrade?.purchased || false; }
+        function getSafeMultiplier(upgrade, methodName = 'getEffectMultiplier') { return (upgrade && typeof upgrade[methodName] === 'function' && getSafePurchased(upgrade)) ? (upgrade[methodName]() || 1) : 1; }
+        function getSafeDiscount(upgrade, methodName = 'getDiscount') { return (upgrade && typeof upgrade[methodName] === 'function' && getSafePurchased(upgrade)) ? (upgrade[methodName]() || 0) : 0; }
+        function getSafeBonusGold(upgrade) { return (upgrade && typeof upgrade.getBonusGold === 'function' && getSafePurchased(upgrade)) ? (upgrade.getBonusGold() || 0) : 0; }
+        function getSafeBoost(upgrade, methodName = 'getBonusMultiplierIncrease') { return (upgrade && typeof upgrade[methodName] === 'function' && getSafeLevel(upgrade) > 0) ? (upgrade[methodName]() || 0) : 0; }
+        function getSafeChance(upgrade, methodName = 'getChance') { return (upgrade && typeof upgrade[methodName] === 'function' && getSafeLevel(upgrade) > 0) ? (upgrade[methodName]() || 0) : 0; }
+
+        function applyReward(reward) {
+             try {
+                 const multiplier = getSafeMultiplier(goldUpgrades.missionRewardMultiplier);
+                 let actualAmount = Math.floor((reward?.amount || 0) * multiplier);
+                 if (reward?.type === "points") { gameState.points = Math.floor(gameState.points || 0) + actualAmount; showNotification(`+${formatNumber(actualAmount)} Punktów! ${multiplier > 1 ? `(x${multiplier})` : ''}`, 'success'); }
+                 else if (reward?.type === "gold") { gameState.gold = (gameState.gold || 0) + actualAmount; showNotification(`+${formatNumber(actualAmount)} Złota! ${multiplier > 1 ? `(x${multiplier})` : ''}`, 'success'); }
+                 updateDisplay();
+             } catch(e) { console.error("Błąd w applyReward:", e); }
+        }
+        function getDiscountMultiplier() {
+            try {
+                 const negotiationDiscount = 1 - (upgrades.discount?.getDiscount() || 0);
+                 const permanentGoldDiscount = 1 - getSafeDiscount(goldUpgrades.permanentDiscount);
+                 const result = negotiationDiscount * permanentGoldDiscount;
+                 return isNaN(result) ? 1 : Math.min(1, Math.max(0.01, result));
+            } catch (e) { console.error("Błąd w getDiscountMultiplier:", e); return 1; }
+        }
+        function calculateBasePrestigeMultiplier() {
+            try {
+                 const boostPerLevel = upgrades.prestigePower?.getPrestigeMultiplierBoost() || 0;
+                 const baseMultiplierPerLevel = 0.1 + boostPerLevel;
+                 const result = 1 + (gameState.prestigeLevel || 0) * baseMultiplierPerLevel;
+                 return isNaN(result) ? 1 : result;
+            } catch (e) { console.error("Błąd w calculateBasePrestigeMultiplier:", e); return 1;}
+        }
+        function getCurrentFrenzyMultiplier() {
+            if (!gameState.pointFrenzyActive || Date.now() >= gameState.pointFrenzyEndTime) return 1;
+            return goldUpgrades.pointFrenzy?.multiplier || 1;
+        }
+
+        // --- Definicje Ulepszeń (Punkty) - Wersja v5.4 ---
+        const upgrades = {
+            clickPower: { name: "Siła Kliknięcia", description: "Zwiększa punkty za *ręczne* kliknięcie.", baseCost: 10, costMultiplier: 1.15, level: 0, effectBase: 1, getCost: function() { return Math.floor(this.baseCost * Math.pow(this.costMultiplier, getSafeLevel(this)) * getDiscountMultiplier()); }, getEffectDescription: function() { return `+${formatNumber(this.effectBase)} do bazowego PPC`; } },
+            autoClicker: { name: "Auto Klikacz", description: "Generuje punkty co sekundę.", baseCost: 50, costMultiplier: 1.2, level: 0, effectBase: 1, getCost: function() { return Math.floor(this.baseCost * Math.pow(this.costMultiplier, getSafeLevel(this)) * getDiscountMultiplier()); }, getEffectDescription: function() { return `+${formatNumber(this.effectBase)} bazowego PPS`; } },
+            superClicker: { name: "Super Klikacz", description: "Generuje znacznie więcej punktów co sekundę.", baseCost: 500, costMultiplier: 1.25, level: 0, effectBase: 5, getCost: function() { return Math.floor(this.baseCost * Math.pow(this.costMultiplier, getSafeLevel(this)) * getDiscountMultiplier()); }, getEffectDescription: function() { return `+${formatNumber(this.effectBase)} bazowego PPS`; } },
+            megaClicker: { name: "Mega Klikacz", description: "Potężny generator punktów na sekundę.", baseCost: 10000, costMultiplier: 1.3, level: 0, effectBase: 25, getCost: function() { return Math.floor(this.baseCost * Math.pow(this.costMultiplier, getSafeLevel(this)) * getDiscountMultiplier()); }, getEffectDescription: function() { return `+${formatNumber(this.effectBase)} bazowego PPS`; } },
+            clickerSynergy: { name: "Synergia Klikaczy", description: "Mnoży efektywność wszystkich klikaczy PPS.", baseCost: 2500, costMultiplier: 1.8, level: 0, effectBase: 0.05, getCost: function() { return Math.floor(this.baseCost * Math.pow(this.costMultiplier, getSafeLevel(this)) * getDiscountMultiplier()); }, getEffectMultiplier: function() { return 1 + getSafeLevel(this) * this.effectBase; }, getEffectDescription: function() { return `Mnożnik całkowitego PPS x${(this.getEffectMultiplier() || 1).toFixed(2)}`; } },
+            efficiencyBoost: { name: "Wzmocnienie Wydajności", description: "Zwiększa *bazową* efektywność klikaczy PPS.", baseCost: 50000, costMultiplier: 2.0, level: 0, effectBase: 0.10, getCost: function() { return Math.floor(this.baseCost * Math.pow(this.costMultiplier, getSafeLevel(this)) * getDiscountMultiplier()); }, getEffectMultiplier: function() { return 1 + getSafeLevel(this) * this.effectBase; }, getEffectDescription: function() { return `Bazowy PPS x${(this.getEffectMultiplier() || 1).toFixed(2)}`; } },
+            luckyClick: { name: "Szczęśliwy Traf", description: "Szansa na bonusowe punkty przy kliknięciu.", baseCost: 5000, costMultiplier: 2.5, level: 0, effectBase: 0.01, bonusMultiplierBase: 10, maxChance: 0.6, getCost: function() { return Math.floor(this.baseCost * Math.pow(this.costMultiplier, getSafeLevel(this)) * getDiscountMultiplier()); }, getChance: function() { return Math.min(getSafeLevel(this) * this.effectBase, this.maxChance); }, getBonusMultiplier: function() { return this.bonusMultiplierBase + getSafeBoost(upgrades.luckyMultiplier);}, getEffectDescription: function() { return `${(this.getChance() * 100).toFixed(1)}% szansy na ${this.getBonusMultiplier()}x PPC (Max ${this.maxChance*100}%)`; } },
+            criticalClick: { name: "Krytyczne Kliknięcie", description: "Bardzo mała szansa na OGROMNY bonus punktów.", baseCost: 1000000, costMultiplier: 3.5, level: 0, effectBase: 0.005, bonusMultiplierBase: 100, maxChance: 0.15, getCost: function() { return Math.floor(this.baseCost * Math.pow(this.costMultiplier, getSafeLevel(this)) * getDiscountMultiplier()); }, getChance: function() { return Math.min(getSafeLevel(this) * this.effectBase, this.maxChance); }, getBonusMultiplier: function() { return this.bonusMultiplierBase + getSafeBoost(upgrades.criticalMultiplier); }, getEffectDescription: function() { return `${(this.getChance() * 100).toFixed(1)}% szansy na ${this.getBonusMultiplier()}x PPC (Max ${this.maxChance*100}%)`; } },
+            luckyMultiplier: { name: "Mnożnik Szczęścia", description: "Zwiększa mnożnik punktów Szczęśliwego Trafu.", baseCost: 1e7, costMultiplier: 4.0, level: 0, effectBase: 5, getCost: function() { return Math.floor(this.baseCost * Math.pow(this.costMultiplier, getSafeLevel(this)) * getDiscountMultiplier()); }, getBonusMultiplierIncrease: function() { return getSafeLevel(this) * this.effectBase; }, getEffectDescription: function() { return `Mnożnik Szczęśliwego Trafu +${this.getBonusMultiplierIncrease()}x`; } },
+            criticalMultiplier: { name: "Mnożnik Krytyczny", description: "Zwiększa mnożnik punktów Krytycznego Kliknięcia.", baseCost: 5e8, costMultiplier: 5.0, level: 0, effectBase: 25, getCost: function() { return Math.floor(this.baseCost * Math.pow(this.costMultiplier, getSafeLevel(this)) * getDiscountMultiplier()); }, getBonusMultiplierIncrease: function() { return getSafeLevel(this) * this.effectBase; }, getEffectDescription: function() { return `Mnożnik Krytycznego Kliknięcia +${this.getBonusMultiplierIncrease()}x`; } },
+            discount: { name: "Mistrz Negocjacji", description: "Obniża koszt wszystkich ulepszeń za punkty.", baseCost: 100000, costMultiplier: 5, level: 0, effectBase: 0.02, maxDiscount: 0.5, getCost: function() { return Math.floor(this.baseCost * Math.pow(this.costMultiplier, getSafeLevel(this)) * (1 - getSafeDiscount(goldUpgrades.permanentDiscount))); }, getDiscount: function() { return Math.min(getSafeLevel(this) * this.effectBase, this.maxDiscount); }, getEffectDescription: function() { return `Zniżka ${ (this.getDiscount() * 100).toFixed(0) }% (Max ${this.maxDiscount*100}%)`; } },
+            prestigePower: { name: "Moc Prestiżu", description: "Zwiększa mnożnik punktów otrzymywany za poziom prestiżu.", baseCost: 5e7, costMultiplier: 3, level: 0, effectBase: 0.005, getCost: function() { return Math.floor(this.baseCost * Math.pow(this.costMultiplier, getSafeLevel(this)) * getDiscountMultiplier()); }, getPrestigeMultiplierBoost: function() { return getSafeLevel(this) * this.effectBase; }, getEffectDescription: function() { return `Mnożnik Prestiżu +${(this.getPrestigeMultiplierBoost()).toFixed(3)} na poziom`; } },
+        };
+
+        // --- Definicje Ulepszeń za Złoto - Wersja v5.4 ---
+        const goldUpgrades = {
+            bonusPoints: { name: "+1000 Punktów Startowych", description: "Natychmiast dodaje 1000 punktów (skalowane z prestiżem).", cost: 1, isOneTime: true, persistOnPrestige: false, purchased: false, applyEffect: function() { gameState.points += 1000 * calculateBasePrestigeMultiplier(); showNotification("+1k punktów (skalowane)!", "success"); }, isAvailable: function() { return gameState.gold >= this.cost; } },
+            doubleClick: { name: "Moc Podwójnego Kliknięcia", description: "Podwaja punkty zdobywane za ręczne kliknięcia (Trwałe).", cost: 5, isOneTime: false, persistOnPrestige: true, purchased: false, applyEffect: function() { this.purchased = true; }, isAvailable: function() { return !getSafePurchased(this) && gameState.gold >= this.cost; }, getEffectMultiplier: function() { return getSafePurchased(this) ? 2 : 1; } },
+            permanentPPCBoost: { name: "Trwałe Wzmocnienie PPC I", description: "Zwiększa na stałe PPC o 5% (Trwałe).", cost: 10, isOneTime: false, persistOnPrestige: true, purchased: false, effectValue: 0.05, applyEffect: function() { this.purchased = true; }, isAvailable: function() { return !getSafePurchased(this) && gameState.gold >= this.cost; }, getEffectMultiplier: function() { return getSafePurchased(this) ? (1 + this.effectValue) : 1; } },
+            ppsMultiplier: { name: "Trwały Mnożnik PPS I", description: "Zwiększa całkowity PPS o 10% (Trwałe).", cost: 10, isOneTime: false, persistOnPrestige: true, purchased: false, effectValue: 0.10, applyEffect: function() { this.purchased = true; }, isAvailable: function() { return !getSafePurchased(this) && gameState.gold >= this.cost; }, getEffectMultiplier: function() { return getSafePurchased(this) ? (1 + this.effectValue) : 1; } },
+            permanentDiscount: { name: "Trwała Zniżka I", description: "Obniża na stałe koszt ulepszeń za punkty o 5% (Trwałe).", cost: 20, isOneTime: false, persistOnPrestige: true, purchased: false, effectValue: 0.05, applyEffect: function() { this.purchased = true; }, isAvailable: function() { return !getSafePurchased(this) && gameState.gold >= this.cost; }, getDiscount: function() { return getSafePurchased(this) ? this.effectValue : 0; } },
+            goldenPrestige: { name: "Złoty Prestiż I", description: "Otrzymujesz +1 dodatkowe złoto za każdy prestiż (Trwałe).", cost: 15, isOneTime: false, persistOnPrestige: true, purchased: false, bonusGold: 1, applyEffect: function() { this.purchased = true; }, isAvailable: function() { return !getSafePurchased(this) && gameState.gold >= this.cost; }, getBonusGold: function() { return getSafePurchased(this) ? this.bonusGold : 0; } },
+            prestigeStartBonus: { name: "Bonus Startowy Prestiżu I", description: "Rozpocznij prestiż z 5 darmowymi poziomami Siły Kliknięcia (Trwałe).", cost: 25, isOneTime: false, persistOnPrestige: true, purchased: false, bonusLevels: 5, applyEffect: function() { this.purchased = true; }, isAvailable: function() { return !getSafePurchased(this) && gameState.gold >= this.cost; } },
+            pointFrenzy: { name: "Szał Punktów", description: "Mnoży punkty x5 na określony czas.", cost: 3, isOneTime: true, persistOnPrestige: false, purchased: false, baseDuration: 60, multiplier: 5, applyEffect: function() { const currentDuration = this.baseDuration * getSafeMultiplier(goldUpgrades.frenzyExtender); gameState.pointFrenzyActive = true; gameState.pointFrenzyEndTime = Date.now() + currentDuration * 1000; showNotification(`Szał Punktów aktywny! x${this.multiplier} przez ${Math.round(currentDuration)}s!`, 'success', 5000); updateFrenzyTimerDisplay(); }, isAvailable: function() { return !gameState.pointFrenzyActive && gameState.gold >= this.cost; }, getDescription: function() { const currentDuration = this.baseDuration * getSafeMultiplier(goldUpgrades.frenzyExtender); return `Mnoży WSZYSTKIE zdobywane punkty x${this.multiplier} na ${Math.round(currentDuration)} sekund.`} },
+            frenzyExtender: { name: "Mistrzostwo Szału I", description: "Wydłuża czas trwania Szału Punktów o 50% (Trwałe).", cost: 12, isOneTime: false, persistOnPrestige: true, purchased: false, durationMultiplier: 1.5, applyEffect: function() { this.purchased = true; }, isAvailable: function() { return !getSafePurchased(this) && gameState.gold >= this.cost; }, getDurationMultiplier: function() { return getSafePurchased(this) ? this.durationMultiplier : 1; } },
+            hugePointBonus: { name: "Ogromny Bonus Punktowy", description: "Natychmiast dodaje 1 000 000 punktów (skalowane z prestiżem).", cost: 10, isOneTime: true, persistOnPrestige: false, purchased: false, applyEffect: function() { gameState.points += 1000000 * calculateBasePrestigeMultiplier(); showNotification("+1M punktów (skalowane)!", "success"); }, isAvailable: function() { return gameState.gold >= this.cost; } },
+            luckyCapIncrease: { name: "Zwiększenie Limitu Szczęścia", description: "Zwiększa maksymalną szansę na Szczęśliwy Traf do 75% (Trwałe).", cost: 25, isOneTime: false, persistOnPrestige: true, purchased: false, applyEffect: function() { if (upgrades.luckyClick) upgrades.luckyClick.maxChance = 0.75; this.purchased = true; }, isAvailable: function() { return !getSafePurchased(this) && gameState.gold >= this.cost && upgrades.luckyClick?.maxChance < 0.75; } },
+            criticalCapIncrease: { name: "Zwiększenie Limitu Krytyka", description: "Zwiększa maksymalną szansę na Krytyczne Kliknięcie do 20% (Trwałe).", cost: 40, isOneTime: false, persistOnPrestige: true, purchased: false, applyEffect: function() { if (upgrades.criticalClick) upgrades.criticalClick.maxChance = 0.20; this.purchased = true; }, isAvailable: function() { return !getSafePurchased(this) && gameState.gold >= this.cost && upgrades.criticalClick?.maxChance < 0.20; } },
+            missionRewardMultiplier: { name: "Mnożnik Nagród z Misji", description: "Podwaja nagrody za ukończenie misji (Trwałe).", cost: 50, isOneTime: false, persistOnPrestige: true, purchased: false, multiplier: 2, applyEffect: function() { this.purchased = true; }, isAvailable: function() { return !getSafePurchased(this) && gameState.gold >= this.cost; }, getEffectMultiplier: function() { return getSafePurchased(this) ? this.multiplier : 1; } },
+            goldenSkinDiscount: { name: "Zniżka na Złotą Skórkę", description: "Obniża koszt Złotej Skórki o 50% (Jednorazowe).", cost: 5, isOneTime: true, persistOnPrestige: false, purchased: false, applyEffect: function() { if(skins['gold']) skins['gold'].cost = Math.max(1, Math.floor(skins['gold'].cost / 2)); this.purchased = true; showNotification("Koszt złotej skórki zmniejszony o 50%!", "success");}, isAvailable: function() { return !getSafePurchased(this) && gameState.gold >= this.cost && skins['gold'] && !gameState.unlockedSkinIds?.includes('gold'); } },
+        };
+
+        // --- Definicja Skórek ---
+        const skins = {
+            'default': { name: "Domyślna", cost: 0, cssClass: 'skin-default' },
+            'lava': { name: "Lawa", cost: 10, cssClass: 'skin-lava' },
+            'ice': { name: "Lód", cost: 10, cssClass: 'skin-ice' },
+            'toxic': { name: "Toksyczna", cost: 15, cssClass: 'skin-toxic' },
+            'gold': { name: "Złota", cost: 50, cssClass: 'skin-gold' }
+        };
+
+        // --- Definicja Motywów ---
+        const themes = {
+            'default': { name: "Domyślny", cost: 0, cssClass: 'theme-default' },
+            'galaxy': { name: "Galaktyka", cost: 250, cssClass: 'theme-galaxy' }
+        };
+
+        // --- Definicje Misji - Wersja v5.4 ---
+        let missions = [
+            { id: "click100", description: "Wykonaj 100 kliknięć", checkCondition: () => gameState.totalClicks >= 100, reward: { type: "points", amount: 250 }, status: 0 },
+            { id: "points1k", description: "Zdobądź 1 000 punktów", checkCondition: () => Math.floor(gameState.points) >= 1000, reward: { type: "points", amount: 500 }, status: 0 },
+            { id: "buyClickPower5", description: "Osiągnij Poziom 5 Siły Kliknięcia", checkCondition: () => getSafeLevel(upgrades.clickPower) >= 4, reward: { type: "gold", amount: 1 }, status: 0 },
+            { id: "buyAutoClicker1", description: "Kup pierwszy Auto Klikacz", checkCondition: () => getSafeLevel(upgrades.autoClicker) >= 1, reward: { type: "points", amount: 1000 }, status: 0 },
+            { id: "reachPrestige1", description: "Wykonaj pierwszy Prestiż", checkCondition: () => gameState.prestigeLevel >= 1, reward: { type: "gold", amount: 2 }, status: 0 },
+            { id: "points1M", description: "Zdobądź 1 Milion punktów", checkCondition: () => Math.floor(gameState.points) >= 1000000, reward: { type: "points", amount: 50000 }, status: 0 },
+            { id: "points1B", description: "Zdobądź 1 Miliard punktów", checkCondition: () => Math.floor(gameState.points) >= 1000000000, reward: { type: "gold", amount: 10 }, status: 0 },
+            { id: "buySynergy1", description: "Kup pierwszą Synergię Klikaczy", checkCondition: () => getSafeLevel(upgrades.clickerSynergy) >= 1, reward: { type: "points", amount: 20000 }, status: 0 },
+            { id: "buyDiscount1", description: "Kup pierwszego Mistrza Negocjacji", checkCondition: () => getSafeLevel(upgrades.discount) >= 1, reward: { type: "gold", amount: 5 }, status: 0 },
+            { id: "have10Gold", description: "Posiadaj 10 złota jednocześnie", checkCondition: () => gameState.gold >= 10, reward: { type: "points", amount: 100000 }, status: 0 },
+            { id: "have50Gold", description: "Posiadaj 50 złota jednocześnie", checkCondition: () => gameState.gold >= 50, reward: { type: "gold", amount: 25 }, status: 0 },
+            { id: "reachPrestige5", description: "Osiągnij 5 Poziom Prestiżu", checkCondition: () => gameState.prestigeLevel >= 5, reward: { type: "gold", amount: 5 }, status: 0 },
+            { id: "reachPrestige10", description: "Osiągnij 10 Poziom Prestiżu", checkCondition: () => gameState.prestigeLevel >= 10, reward: { type: "points", amount: 1000000 }, status: 0 },
+            { id: "buyAllGoldPersist", description: "Kup wszystkie trwałe ulepszenia za złoto (z tej wersji)", checkCondition: () => Object.values(goldUpgrades).filter(u => u && !u.isOneTime && u.persistOnPrestige).every(u => getSafePurchased(u)), reward: { type: "gold", amount: 50 }, status: 0 },
+            { id: "activateFrenzy", description: "Aktywuj Szał Punktów", checkCondition: () => gameState.pointFrenzyActive, reward: { type: "points", amount: 5000 }, status: 0 },
+            { id: "unlockSkin", description: "Odblokuj przynajmniej jedną płatną skórkę", checkCondition: () => (gameState.unlockedSkinIds?.length || 0) > 1, reward: { type: "gold", amount: 3 }, status: 0 },
+            { id: "buyMegaClicker1", description: "Kup pierwszy Mega Klikacz", checkCondition: () => getSafeLevel(upgrades.megaClicker) >= 1, reward: { type: "points", amount: 50000 }, status: 0 },
+            { id: "activateCrit", description: "Aktywuj Krytyczne Kliknięcie", checkCondition: () => false, reward: { type: "gold", amount: 1 }, status: 0 },
+            { id: "buyPermPPC", description: "Kup Trwałe Wzmocnienie PPC I", checkCondition: () => getSafePurchased(goldUpgrades.permanentPPCBoost), reward: { type: "points", amount: 100000 }, status: 0 },
+            { id: "buyPermDiscount", description: "Kup Trwałą Zniżkę I", checkCondition: () => getSafePurchased(goldUpgrades.permanentDiscount), reward: { type: "gold", amount: 10 }, status: 0 },
+            { id: "buyFrenzyExt", description: "Kup Mistrzostwo Szału I", checkCondition: () => getSafePurchased(goldUpgrades.frenzyExtender), reward: { type: "points", amount: 75000 }, status: 0 },
+            { id: "buyPrestigeBonus", description: "Kup Bonus Startowy Prestiżu I", checkCondition: () => getSafePurchased(goldUpgrades.prestigeStartBonus), reward: { type: "gold", amount: 15 }, status: 0 },
+            { id: "buyCapIncrease", description: "Kup Zwiększenie Limitu (Szczęścia lub Krytyka)", checkCondition: () => getSafePurchased(goldUpgrades.luckyCapIncrease) || getSafePurchased(goldUpgrades.criticalCapIncrease), reward: { type: "gold", amount: 20 }, status: 0 },
+            { id: "buyMissionMult", description: "Kup Mnożnik Nagród z Misji", checkCondition: () => getSafePurchased(goldUpgrades.missionRewardMultiplier), reward: { type: "gold", amount: 30 }, status: 0 },
+            { id: "unlockTheme", description: "Odblokuj przynajmniej jeden płatny motyw", checkCondition: () => (gameState.unlockedThemeIds?.length || 0) > 1, reward: { type: "gold", amount: 5 }, status: 0 },
+        ];
+
+        // --- Elementy DOM ---
+        let dom = {};
+        let notificationTimeout;
+
+        // --- Aktualizacja Wyświetlania ---
+        function updateDisplay() {
+            if (!dom.points) { console.warn("updateDisplay called before DOM ready or points element missing."); return; }
+            try {
+                // Statystyki
+                dom.points.textContent = formatNumber(gameState.points);
+                dom.gold.textContent = formatNumber(gameState.gold);
+                dom.totalClicks.textContent = formatNumber(gameState.totalClicks);
+                dom.bestScore.textContent = formatNumber(gameState.bestScore);
+                dom.allTimeBestScore.textContent = formatNumber(gameState.allTimeBestScore);
+                const totalDiscountPercentage = (1 - getDiscountMultiplier()) * 100;
+                dom.discountPercentage.textContent = totalDiscountPercentage.toFixed(1);
+                const currentPPC = calculatePPC(); const currentPPS = calculatePPS();
+                dom.ppc.textContent = formatNumber(currentPPC); dom.pps.textContent = formatNumber(currentPPS);
+                const currentBasePrestigeMultiplier = calculateBasePrestigeMultiplier();
+                dom.prestigeMultiplier.textContent = currentBasePrestigeMultiplier.toFixed(3);
+
+                // Prestiż
+                 if(dom.prestigeCost && dom.prestigeGoldReward && dom.prestigeBtn && dom.prestigeMultiplierValue && dom.nextPrestigeMultiplierValue && dom.prestigeStartBonusInfo && dom.prestigeStartBonusLevel) {
+                    const prestigeCost = calculatePrestigeCost();
+                    const baseGoldReward = 1 + getSafeBonusGold(goldUpgrades.goldenPrestige);
+                    const prestigeGold = Math.floor(baseGoldReward);
+                    dom.prestigeCost.textContent = isNaN(prestigeCost) || prestigeCost === Infinity ? 'N/A' : formatNumber(prestigeCost);
+                    dom.prestigeGoldReward.textContent = prestigeGold;
+                    dom.prestigeBtn.disabled = Math.floor(gameState.points) < prestigeCost || isNaN(prestigeCost) || prestigeCost === Infinity;
+                    dom.prestigeMultiplierValue.textContent = currentBasePrestigeMultiplier.toFixed(3);
+                    const nextLevelPrestigeMultiplier = 1 + ((gameState.prestigeLevel || 0) + 1) * (0.1 + (upgrades.prestigePower?.getPrestigeMultiplierBoost() || 0));
+                    dom.nextPrestigeMultiplierValue.textContent = nextLevelPrestigeMultiplier.toFixed(3);
+                    const startBonusI = goldUpgrades.prestigeStartBonus;
+                    if (getSafePurchased(startBonusI)) { dom.prestigeStartBonusLevel.textContent = startBonusI.bonusLevels || 0; dom.prestigeStartBonusInfo.style.display = 'block'; }
+                    else { dom.prestigeStartBonusInfo.style.display = 'none'; }
+                 } else { console.warn("Brak elementów DOM dla sekcji Prestiżu podczas updateDisplay"); }
+
+                // Renderowanie Ulepszeń
+                try {
+                    if (!dom.upgradesContainer) throw new Error("upgradesContainer not found");
+                    dom.upgradesContainer.innerHTML = '';
+                    for (const id in upgrades) {
+                        const upg = upgrades[id]; if (!upg) continue;
+                        let currentCost = Infinity;
+                        try { currentCost = upg.getCost(); } catch (e) { console.warn(`Błąd w getCost dla ${id}:`, e); }
+                        if (isNaN(currentCost)) { currentCost = Infinity; }
+                        const canAfford = Math.floor(gameState.points) >= currentCost;
+                        const div = document.createElement('div'); div.classList.add('upgrade-item');
+                        const levelDisplay = (id === 'clickPower') ? getSafeLevel(upg) + 1 : getSafeLevel(upg);
+                        let effectDesc = "Brak opisu efektu";
+                        try { if (typeof upg.getEffectDescription === 'function') { effectDesc = upg.getEffectDescription(); } } catch (e) { console.warn(`Błąd w getEffectDescription dla ${id}:`, e); effectDesc = "Błąd opisu!"; }
+                        if(upg.maxChance && !effectDesc.includes("Max")) { effectDesc += ` (Max ${upg.maxChance*100}%)`; } else if (upg.maxDiscount && !effectDesc.includes("Max")) { effectDesc += ` (Max ${upg.maxDiscount*100}%)`; }
+                        div.innerHTML = `<div><strong>${upg.name} (Poziom ${levelDisplay})</strong><p>${upg.description || ''}</p><p><span class="description-label">Efekt:</span> ${effectDesc}</p></div><button data-upgrade-id="${id}" ${!canAfford || isNaN(currentCost) || currentCost === Infinity ? 'disabled' : ''}><span class="description-label">Koszt:</span> ${isNaN(currentCost) || currentCost === Infinity ? 'Błąd/Max' : formatNumber(currentCost)}</button>`;
+                        dom.upgradesContainer.appendChild(div);
+                    }
+                    dom.upgradesContainer.querySelectorAll('button[data-upgrade-id]').forEach(button => { button.addEventListener('click', () => buyUpgrade(button.dataset.upgradeId)); });
+                } catch (renderError) { console.error("Błąd podczas renderowania ulepszeń:", renderError); if(dom.upgradesContainer) dom.upgradesContainer.innerHTML = '<p style="color:red;">Błąd renderowania ulepszeń!</p>'; }
+
+                // Renderowanie Bonusów za Złoto
+                try {
+                    if (!dom.goldUpgradesContainer) throw new Error("goldUpgradesContainer not found");
+                    dom.goldUpgradesContainer.innerHTML = '';
+                    for (const id in goldUpgrades) {
+                        const upg = goldUpgrades[id]; if (!upg) continue;
+                        const div = document.createElement('div'); div.classList.add('upgrade-item');
+                        let canAfford = false; let description = "Błąd opisu/dostępności"; let buttonHTML = `<button disabled>Błąd</button>`;
+                        try {
+                             canAfford = upg.isAvailable ? upg.isAvailable() : false;
+                             description = upg.getDescription ? upg.getDescription() : upg.description;
+                             if (upg.isOneTime) { buttonHTML = `<button data-goldupgrade-id="${id}" ${!canAfford ? 'disabled' : ''}><span class="description-label">Koszt:</span> ${formatNumber(upg.cost)} Złota</button>`; }
+                             else { if (!getSafePurchased(upg)) { buttonHTML = `<button data-goldupgrade-id="${id}" ${!canAfford ? 'disabled' : ''}><span class="description-label">Koszt:</span> ${formatNumber(upg.cost)} Złota</button>`; } else { buttonHTML = `<button disabled>Kupione</button>`; } }
+                        } catch(e) { console.warn(`Błąd w renderowaniu bonusu za złoto ${id}:`, e); }
+                        div.innerHTML = `<div><strong>${upg.name}</strong><p>${description}</p></div>${buttonHTML}`;
+                        dom.goldUpgradesContainer.appendChild(div);
+                    }
+                    dom.goldUpgradesContainer.querySelectorAll('button[data-goldupgrade-id]').forEach(button => { button.addEventListener('click', () => buyGoldUpgrade(button.dataset.goldupgradeId)); });
+                } catch (renderError) { console.error("Błąd podczas renderowania bonusów:", renderError); if(dom.goldUpgradesContainer) dom.goldUpgradesContainer.innerHTML = '<p style="color:red;">Błąd renderowania bonusów!</p>';}
+
+                // Renderowanie Skórek
+                try {
+                    if (!dom.skinsContainer) throw new Error("skinsContainer not found");
+                    dom.skinsContainer.innerHTML = '';
+                    for (const id in skins) {
+                        const skin = skins[id]; if (!skin) continue;
+                        const isUnlocked = gameState.unlockedSkinIds?.includes(id);
+                        const isActive = gameState.activeSkinId === id;
+                        const canAfford = gameState.gold >= (skin.cost || 0);
+                        const div = document.createElement('div'); div.classList.add('skin-item');
+                        let buttonHTML = '';
+                        if (isActive) { buttonHTML = `<button disabled>Aktywna</button>`; } else if (isUnlocked) { buttonHTML = `<button data-skin-id="${id}" data-action="activate">Aktywuj</button>`; } else { buttonHTML = `<button data-skin-id="${id}" data-action="buy" ${!canAfford ? 'disabled' : ''}>Kup (${formatNumber(skin.cost || 0)})</button>`; }
+                        const previewSpan = `<span class="skin-preview ${skin.cssClass || ''}"></span>`;
+                        div.innerHTML = `<div>${previewSpan}<strong>${skin.name || 'Brak nazwy'}</strong></div>${buttonHTML}`;
+                        dom.skinsContainer.appendChild(div);
+                    }
+                    dom.skinsContainer.querySelectorAll('button[data-skin-id]').forEach(button => { button.addEventListener('click', () => { const skinId = button.dataset.skinId; const action = button.dataset.action; if (action === 'buy') { buySkin(skinId); } else if (action === 'activate') { activateSkin(skinId); } }); });
+                } catch (renderError) { console.error("Błąd podczas renderowania skórek:", renderError); if(dom.skinsContainer) dom.skinsContainer.innerHTML = '<p style="color:red;">Błąd renderowania skórek!</p>'; }
+
+                 // Renderowanie Motywów Tła
+                 try {
+                     if (!dom.themesContainer) throw new Error("themesContainer not found");
+                     dom.themesContainer.innerHTML = '';
+                     for (const id in themes) {
+                         const theme = themes[id]; if (!theme) continue;
+                         const isUnlocked = gameState.unlockedThemeIds?.includes(id);
+                         const isActive = gameState.activeThemeId === id;
+                         const canAfford = gameState.gold >= (theme.cost || 0);
+                         const div = document.createElement('div'); div.classList.add('theme-item');
+                         let buttonHTML = '';
+                         if (isActive) { buttonHTML = `<button disabled>Aktywny</button>`; }
+                         else if (isUnlocked) { buttonHTML = `<button data-theme-id="${id}" data-action="activate">Aktywuj</button>`; }
+                         else { buttonHTML = `<button data-theme-id="${id}" data-action="buy" ${!canAfford ? 'disabled' : ''}>Kup (${formatNumber(theme.cost || 0)})</button>`; }
+                         const previewSpan = `<span class="theme-preview ${theme.cssClass || ''}"></span>`;
+                         div.innerHTML = `<div>${previewSpan}<strong>${theme.name || 'Brak nazwy'}</strong></div>${buttonHTML}`;
+                         dom.themesContainer.appendChild(div);
+                     }
+                     dom.themesContainer.querySelectorAll('button[data-theme-id]').forEach(button => { button.addEventListener('click', () => { const themeId = button.dataset.themeId; const action = button.dataset.action; if (action === 'buy') { buyTheme(themeId); } else if (action === 'activate') { activateTheme(themeId); } }); });
+                 } catch (renderError) { console.error("Błąd podczas renderowania motywów:", renderError); if(dom.themesContainer) dom.themesContainer.innerHTML = '<p style="color:red;">Błąd renderowania motywów!</p>'; }
+
+                // Renderowanie Misji
+                try {
+                    if (!dom.missionsContainer) throw new Error("missionsContainer not found");
+                    dom.missionsContainer.innerHTML = '';
+                    missions.forEach(mission => {
+                        if(!mission) return;
+                        const div = document.createElement('div'); div.classList.add('mission-item');
+                        let statusClass = "not-completed"; let buttonDisabled = true; let buttonText = "Status";
+                        if (mission.status === 1) { statusClass = "claimable"; buttonDisabled = false; buttonText = "Odbierz"; } else if (mission.status === 2) { statusClass = "claimed"; buttonText = "Odebrana"; }
+                        const multiplier = getSafeMultiplier(goldUpgrades.missionRewardMultiplier);
+                        let rewardText = `(<span class="description-label">Nagroda:</span> ${formatNumber(Math.floor((mission.reward?.amount || 0) * multiplier))} ${mission.reward?.type === 'points' ? 'pkt' : 'złota'}${multiplier > 1 ? ` [x${multiplier}]` : ''})`;
+                        div.innerHTML = `<div> <p>${mission.description || 'Brak opisu'} ${rewardText}</p> </div> <button data-mission-id="${mission.id}" ${buttonDisabled ? 'disabled' : ''} class="${statusClass}"> ${buttonText} </button>`;
+                        dom.missionsContainer.appendChild(div);
+                    });
+                    dom.missionsContainer.querySelectorAll('button[data-mission-id]').forEach(button => { button.addEventListener('click', () => claimMissionReward(button.dataset.missionId)); });
+                } catch (renderError) { console.error("Błąd podczas renderowania misji:", renderError); if(dom.missionsContainer) dom.missionsContainer.innerHTML = '<p style="color:red;">Błąd renderowania misji!</p>'; }
+
+                // Renderowanie Rankingu
+                try {
+                    if (!dom.ranking) throw new Error("ranking container not found");
+                    const bestScoreEl = dom.ranking.querySelector('#bestScore');
+                    const allTimeBestScoreEl = dom.ranking.querySelector('#allTimeBestScore');
+                    if (bestScoreEl) bestScoreEl.textContent = formatNumber(gameState.bestScore); else console.warn("Element #bestScore nie znaleziony w Rankingu");
+                    if (allTimeBestScoreEl) allTimeBestScoreEl.textContent = formatNumber(gameState.allTimeBestScore); else console.warn("Element #allTimeBestScore nie znaleziony w Rankingu");
+                    if (!dom.ranking.querySelector('h2')) { dom.ranking.insertAdjacentHTML('afterbegin', '<h2>Ranking</h2>'); }
+                } catch (renderError) { console.error("Błąd podczas renderowania rankingu:", renderError); if(dom.ranking) dom.ranking.innerHTML = '<p style="color:red;">Błąd renderowania rankingu!</p>'; }
+
+
+                // Stosowanie aktywnej skórki przycisku
+                if (dom.clickerBtn) {
+                    Object.values(skins).forEach(skin => dom.clickerBtn.classList.remove(skin?.cssClass || ''));
+                    if (skins[gameState.activeSkinId]) { dom.clickerBtn.classList.add(skins[gameState.activeSkinId].cssClass); }
+                    else { dom.clickerBtn.classList.add(skins['default'].cssClass); }
+                }
+
+                // Stosowanie aktywnego motywu tła
+                 try {
+                     const bodyEl = document.body;
+                     Object.values(themes).forEach(theme => bodyEl.classList.remove(theme?.cssClass || ''));
+                     if (themes[gameState.activeThemeId]) { bodyEl.classList.add(themes[gameState.activeThemeId].cssClass); }
+                     else { bodyEl.classList.add(themes['default'].cssClass); }
+                 } catch(themeError) { console.error("Błąd podczas stosowania motywu:", themeError); }
+
+
+                // Timer Szału
+                updateFrenzyTimerDisplay();
+            } catch (error) { console.error("!!! KRYTYCZNY BŁĄD w updateDisplay !!!", error); showNotification("Wystąpił krytyczny błąd wyświetlania!", "error", 10000); }
+        }
+
+        // Aktualizacja timera szału
+        function updateFrenzyTimerDisplay() {
+             try {
+                 if (!dom.frenzyTimer || !dom.frenzyTimeLeft) return;
+                 if (gameState.pointFrenzyActive) {
+                     const timeLeft = Math.max(0, Math.ceil((gameState.pointFrenzyEndTime - Date.now()) / 1000));
+                     dom.frenzyTimeLeft.textContent = timeLeft;
+                     dom.frenzyTimer.style.display = 'block';
+                     if (timeLeft <= 0) {
+                         gameState.pointFrenzyActive = false;
+                         dom.frenzyTimer.style.display = 'none';
+                         showNotification("Szał Punktów zakończony.", 'info');
+                         updateDisplay();
+                     }
+                 } else { dom.frenzyTimer.style.display = 'none'; }
+             } catch(e) { console.error("Błąd w updateFrenzyTimerDisplay:", e); }
+        }
+
+        // --- Logika Gry ---
+        function calculatePPC() {
+            try {
+                 const basePPCValue = getSafeLevel(upgrades.clickPower) * getSafeEffectBase(upgrades.clickPower);
+                 const basePPC = 1 + basePPCValue;
+                 const doubleClickMultiplier = getSafeMultiplier(goldUpgrades.doubleClick);
+                 const permanentPPCMultiplier = getSafeMultiplier(goldUpgrades.permanentPPCBoost);
+                 const basePrestigeMultiplier = calculateBasePrestigeMultiplier();
+                 const frenzyMultiplier = getCurrentFrenzyMultiplier();
+                 const totalMultiplier = doubleClickMultiplier * permanentPPCMultiplier * basePrestigeMultiplier * frenzyMultiplier;
+                 const result = Math.floor(basePPC * totalMultiplier);
+                 return isNaN(result) ? 1 : result;
+            } catch (e) { console.error("Błąd w calculatePPC:", e); return 1; }
+        }
+        function calculatePPS() {
+             try {
+                 const auto = getSafeLevel(upgrades.autoClicker) * getSafeEffectBase(upgrades.autoClicker);
+                 const superC = getSafeLevel(upgrades.superClicker) * getSafeEffectBase(upgrades.superClicker);
+                 const mega = getSafeLevel(upgrades.megaClicker) * getSafeEffectBase(upgrades.megaClicker);
+                 const baseEfficiency = getSafeMultiplier(upgrades.efficiencyBoost);
+                 const totalBasePPSValue = (auto + superC + mega) * baseEfficiency;
+                 const synergyMultiplier = getSafeMultiplier(upgrades.clickerSynergy);
+                 const ppsGoldMultiplier = getSafeMultiplier(goldUpgrades.ppsMultiplier);
+                 const basePrestigeMultiplier = calculateBasePrestigeMultiplier();
+                 const frenzyMultiplier = getCurrentFrenzyMultiplier();
+                 const totalMultiplier = synergyMultiplier * ppsGoldMultiplier * basePrestigeMultiplier * frenzyMultiplier;
+                 const result = Math.floor(totalBasePPSValue * totalMultiplier);
+                 return isNaN(result) ? 0 : result;
+            } catch (e) { console.error("Błąd w calculatePPS:", e); return 0; }
+        }
+        function calculatePrestigeCost() {
+            try {
+                 const basePrestigeCost = 10000;
+                 const costMultiplier = 3;
+                 const result = Math.floor(basePrestigeCost * Math.pow(costMultiplier, gameState.prestigeLevel || 0));
+                 return isNaN(result) || result < 0 ? Infinity : result;
+            } catch (e) { console.error("Błąd w calculatePrestigeCost:", e); return Infinity; }
+        }
+
+        function clickButton() {
+            try {
+                 const pointsPerClick = calculatePPC();
+                 if (isNaN(pointsPerClick)) { console.error("PPC is NaN in clickButton!"); return; }
+                 gameState.points = (gameState.points || 0) + pointsPerClick;
+                 gameState.totalClicks = (gameState.totalClicks || 0) + 1;
+
+                 const critChance = getSafeChance(upgrades.criticalClick);
+                 const critMultiplier = upgrades.criticalClick?.getBonusMultiplier() || 1;
+                 if (getSafeLevel(upgrades.criticalClick) > 0 && Math.random() < critChance) {
+                     const bonusPoints = Math.floor(pointsPerClick * (critMultiplier - 1));
+                     gameState.points += bonusPoints;
+                     showNotification(`KRYTYCZNE KLIKNIĘCIE! +${formatNumber(bonusPoints)} punktów! (x${critMultiplier})`, 'success', 3000);
+                     const critMission = missions.find(m => m.id === 'activateCrit');
+                     if (critMission && critMission.status === 0) { critMission.status = 1; showNotification(`Misja ukończona: Aktywuj Krytyczne Kliknięcie!`, 'info'); }
+                 } else {
+                     const luckyChance = getSafeChance(upgrades.luckyClick);
+                     const luckyMultiplier = upgrades.luckyClick?.getBonusMultiplier() || 1;
+                     if (getSafeLevel(upgrades.luckyClick) > 0 && Math.random() < luckyChance) {
+                         const bonusPoints = Math.floor(pointsPerClick * (luckyMultiplier - 1));
+                         gameState.points += bonusPoints;
+                         showNotification(`Szczęśliwy Traf! +${formatNumber(bonusPoints)} punktów! (x${luckyMultiplier})`, 'success', 1500);
+                     }
+                 }
+
+                 checkMissionCompletion();
+                 updateGameState();
+                 updateDisplay();
+            } catch (e) { console.error("Błąd w clickButton:", e); showNotification("Błąd podczas kliknięcia!", "error"); }
+        }
+        function buyUpgrade(id) {
+             const upg = upgrades[id];
+             if (!upg) { console.error(`Próba zakupu nieistniejącego ulepszenia: ${id}`); return; }
+             let currentCost = Infinity;
+             try { currentCost = upg.getCost(); } catch(e) { console.error(`Błąd w getCost dla ${id}:`, e); showNotification("Błąd obliczenia kosztu!", "error"); return; }
+             if (isNaN(currentCost) || currentCost === Infinity) { showNotification("Błąd obliczenia kosztu lub Max Poziom!", "error"); return; }
+
+             if (Math.floor(gameState.points) >= currentCost) {
+                 gameState.points -= currentCost;
+                 upg.level = (upg.level || 0) + 1;
+
+                 checkMissionCompletion();
+                 const levelDisplay = (id === 'clickPower') ? upg.level + 1 : upg.level;
+                 showNotification(`Kupiono: ${upg.name} (Poziom ${levelDisplay})`, 'info');
+                 updateDisplay();
+             } else { showNotification("Za mało punktów!", 'warning'); }
+        }
+        function buyGoldUpgrade(id) {
+            const upg = goldUpgrades[id];
+            if (!upg) { console.error(`Próba zakupu nieistniejącego bonusu: ${id}`); return; }
+            try {
+                 let available = false;
+                 try { available = upg.isAvailable ? upg.isAvailable() : false; } catch(e) {console.error(`Błąd w isAvailable dla ${id}:`, e);}
+
+                 if (available) {
+                     gameState.gold -= upg.cost;
+                     if(typeof upg.applyEffect === 'function') upg.applyEffect();
+                     if (!upg.isOneTime && !['pointFrenzy', 'goldenSkinDiscount'].includes(id)) {
+                          showNotification(`Zakupiono: ${upg.name}!`, 'success');
+                     }
+                     if (id === 'luckyCapIncrease' || id === 'criticalCapIncrease') { updateDisplay(); }
+                     checkMissionCompletion();
+                     updateDisplay();
+                 } else {
+                     if (!upg.isOneTime && getSafePurchased(upg)) { showNotification("Już posiadasz to ulepszenie!", 'info'); }
+                     else if (id === 'pointFrenzy' && gameState.pointFrenzyActive) { showNotification("Szał Punktów jest już aktywny!", 'warning'); }
+                     else if (id === 'goldenSkinDiscount' && gameState.unlockedSkinIds?.includes('gold')) { showNotification("Już odblokowałeś Złotą Skórkę!", 'info'); }
+                     else if (id === 'goldenSkinDiscount' && !skins['gold']) { showNotification("Złota Skórka nie istnieje!", 'error'); }
+                     else { showNotification("Za mało złota lub warunki niespełnione!", 'warning'); }
+                 }
+            } catch(e) { console.error(`Błąd przy zakupie bonusu ${id}:`, e); showNotification("Wystąpił błąd podczas zakupu!", "error"); }
+        }
+        function buySkin(skinId) {
+             const skin = skins[skinId];
+             if (!skin || skin.cost === 0) return;
+             if (gameState.unlockedSkinIds?.includes(skinId)) { showNotification("Już posiadasz tę skórkę!", 'info'); return; }
+             if (gameState.gold >= (skin.cost || 0)) {
+                 gameState.gold -= (skin.cost || 0);
+                 if (!Array.isArray(gameState.unlockedSkinIds)) gameState.unlockedSkinIds = ['default'];
+                 gameState.unlockedSkinIds.push(skinId);
+                 showNotification(`Odblokowano skórkę: ${skin.name}!`, 'success');
+                 checkMissionCompletion();
+                 updateDisplay();
+             } else { showNotification("Za mało złota!", 'warning'); }
+        }
+        function activateSkin(skinId) {
+             if (!skins[skinId]) return;
+             if (!gameState.unlockedSkinIds?.includes(skinId)) { showNotification("Musisz najpierw odblokować tę skórkę!", 'warning'); return; }
+             if (gameState.activeSkinId !== skinId) {
+                 gameState.activeSkinId = skinId;
+                 showNotification(`Aktywowano skórkę: ${skins[skinId].name}`, 'info');
+                 updateDisplay();
+             }
+        }
+         function buyTheme(themeId) {
+             const theme = themes[themeId];
+             if (!theme || theme.cost === 0) return;
+             if (gameState.unlockedThemeIds?.includes(themeId)) { showNotification("Już posiadasz ten motyw!", 'info'); return; }
+             if (gameState.gold >= (theme.cost || 0)) {
+                 gameState.gold -= (theme.cost || 0);
+                 if (!Array.isArray(gameState.unlockedThemeIds)) gameState.unlockedThemeIds = ['default'];
+                 gameState.unlockedThemeIds.push(themeId);
+                 showNotification(`Odblokowano motyw: ${theme.name}!`, 'success');
+                 checkMissionCompletion();
+                 updateDisplay();
+             } else { showNotification("Za mało złota!", 'warning'); }
+         }
+         function activateTheme(themeId) {
+             if (!themes[themeId]) return;
+             if (!gameState.unlockedThemeIds?.includes(themeId)) { showNotification("Musisz najpierw odblokować ten motyw!", 'warning'); return; }
+             if (gameState.activeThemeId !== themeId) {
+                 gameState.activeThemeId = themeId;
+                 showNotification(`Aktywowano motyw: ${themes[themeId].name}`, 'info');
+                 updateDisplay();
+             }
+         }
+
+        function prestige() {
+            let prestigeCost = Infinity;
+             try { prestigeCost = calculatePrestigeCost(); } catch(e) { console.error("Błąd obliczenia kosztu prestiżu w prestige():", e); }
+             if (isNaN(prestigeCost) || prestigeCost === Infinity) { showNotification("Błąd obliczenia kosztu prestiżu!", "error"); return; }
+
+             if (Math.floor(gameState.points) >= prestigeCost) {
+                let goldUpgradesState = {};
+                for (const id in goldUpgrades) { if (goldUpgrades[id]?.persistOnPrestige) { goldUpgradesState[id] = { purchased: goldUpgrades[id].purchased || false }; } }
+                let skinsState = { unlockedSkinIds: [...(gameState.unlockedSkinIds || ['default'])], activeSkinId: gameState.activeSkinId || 'default' };
+                let themesState = { unlockedThemeIds: [...(gameState.unlockedThemeIds || ['default'])], activeThemeId: gameState.activeThemeId || 'default' };
+
+                // Zapamiętaj stan bonusu PRZED resetem
+                const wasPrestigeBonusActive = getSafePurchased(goldUpgrades.prestigeStartBonus);
+                const startBonusLevels = goldUpgrades.prestigeStartBonus?.bonusLevels || 0;
+
+                // Reset
+                gameState.points = 0; gameState.bestScore = 0;
+                Object.values(upgrades).forEach(u => { if(u) u.level = 0; });
+                gameState.pointFrenzyActive = false; gameState.pointFrenzyEndTime = 0;
+
+                // Przywróć trwałe stany
+                for (const id in goldUpgradesState) { if (goldUpgrades[id]) { goldUpgrades[id].purchased = goldUpgradesState[id].purchased; } }
+                gameState.unlockedSkinIds = skinsState.unlockedSkinIds;
+                gameState.activeSkinId = skinsState.activeSkinId;
+                gameState.unlockedThemeIds = themesState.unlockedThemeIds;
+                gameState.activeThemeId = themesState.activeThemeId;
+
+                // Zastosuj bonus startowy, jeśli był aktywny
+                if (wasPrestigeBonusActive && startBonusLevels > 0) {
+                    if (upgrades.clickPower) {
+                       upgrades.clickPower.level = startBonusLevels;
+                       showNotification(`Bonus startowy: +${startLevels} poziomów Siły Kliknięcia!`, 'info');
+                    } else { console.error("Brak ulepszenia clickPower do zastosowania bonusu prestiżu!"); }
+                }
+
+                gameState.prestigeLevel = (gameState.prestigeLevel || 0) + 1;
+                const currentPrestigeMultiplier = calculateBasePrestigeMultiplier();
+
+                const baseGoldReward = 1 + getSafeBonusGold(goldUpgrades.goldenPrestige);
+                const prestigeGold = Math.floor(baseGoldReward);
+                gameState.gold = (gameState.gold || 0) + prestigeGold;
+
+                missions.forEach(mission => { if (mission && mission.status !== 2) { mission.status = 0; } if (mission && mission.id === 'activateCrit') { mission.status = 0; } });
+
+                checkMissionCompletion();
+                showNotification(`Prestiż ${gameState.prestigeLevel} osiągnięty! Otrzymujesz ${prestigeGold} złota i mnożnik x${currentPrestigeMultiplier.toFixed(3)}!`, 'success', 5000);
+                updateDisplay();
+            } else { showNotification(`Potrzebujesz ${formatNumber(prestigeCost)} punktów na prestiż!`, 'warning'); }
+        }
+        function checkMissionCompletion() {
+             let missionCompletedThisCheck = false;
+             missions.forEach(mission => {
+                 if(!mission || mission.status !== 0 || mission.id === 'activateCrit') return; // Pomiń jeśli misja nie istnieje, jest ukończona/odebrana lub to crit
+                 try {
+                     let conditionMet = false;
+                     if (mission.id === 'points1k') conditionMet = Math.floor(gameState.points) >= 1000;
+                     else if (mission.id === 'points1M') conditionMet = Math.floor(gameState.points) >= 1000000;
+                     else if (mission.id === 'points1B') conditionMet = Math.floor(gameState.points) >= 1000000000;
+                     else conditionMet = mission.checkCondition ? mission.checkCondition() : false;
+
+                     if (conditionMet) {
+                         mission.status = 1;
+                         showNotification(`Misja ukończona: ${mission.description}! Odbierz nagrodę.`, 'info');
+                         missionCompletedThisCheck = true;
+                     }
+                 } catch (e) { console.warn(`Błąd w checkCondition dla misji ${mission.id}:`, e);} // Warn zamiast error
+             });
+             if (missionCompletedThisCheck) { updateDisplay(); }
+        }
+        function claimMissionReward(missionId) {
+             const mission = missions.find(m => m && m.id === missionId);
+             if (mission && mission.status === 1) { mission.status = 2; applyReward(mission.reward); updateDisplay(); }
+        }
+        function updateGameState() {
+             gameState.points = Math.floor(gameState.points || 0);
+             if (gameState.points > (gameState.bestScore || 0)) { gameState.bestScore = gameState.points; }
+             if (gameState.points > (gameState.allTimeBestScore || 0)) { gameState.allTimeBestScore = gameState.points; }
+             gameState.lastUpdateTimestamp = Date.now();
+        }
+
+        // --- Pętle gry ---
+        function gameLoop() {
+            try {
+                 const now = Date.now();
+                 const deltaSeconds = (now - (gameState.lastUpdateTimestamp || now)) / 1000;
+                 if (deltaSeconds < 0) return;
+                 const pointsFromPPS = calculatePPS() * deltaSeconds;
+                 if (pointsFromPPS > 0 && !isNaN(pointsFromPPS)) {
+                     gameState.points = (gameState.points || 0) + pointsFromPPS;
+                     // Nie zaokrąglaj tutaj, pozwól updateGameState to zrobić
+                     checkMissionCompletion();
+                 }
+                 updateGameState();
+            } catch(e) { console.error("Błąd w gameLoop:", e); }
+        }
+        function frequentUpdate() {
+             try { updateDisplay(); }
+             catch(e) { console.error("Błąd w frequentUpdate:", e); }
+        }
+
+        // --- Zapis/Odczyt Gry ---
+        const SAVE_KEY_V5_4 = "ultimateClickerDeluxeSave_v5_4_complete"; // Zmieniono klucz
+        function saveGame() {
+             try {
+                 const pointsToSave = Math.floor(gameState.points);
+                 const stateToSave = {
+                     points: pointsToSave, gold: gameState.gold || 0, totalClicks: gameState.totalClicks || 0,
+                     bestScore: gameState.bestScore || 0, allTimeBestScore: gameState.allTimeBestScore || 0,
+                     prestigeLevel: gameState.prestigeLevel || 0,
+                     pointFrenzyActive: gameState.pointFrenzyActive || false, pointFrenzyEndTime: gameState.pointFrenzyEndTime || 0,
+                     lastUpdateTimestamp: gameState.lastUpdateTimestamp || Date.now(),
+                     unlockedSkinIds: Array.isArray(gameState.unlockedSkinIds) ? gameState.unlockedSkinIds : ['default'],
+                     activeSkinId: gameState.activeSkinId || 'default',
+                     unlockedThemeIds: Array.isArray(gameState.unlockedThemeIds) ? gameState.unlockedThemeIds : ['default'],
+                     activeThemeId: gameState.activeThemeId || 'default'
+                 };
+                 const saveData = {
+                     version: "v5.4_complete", timestamp: Date.now(), gameState: stateToSave,
+                     upgrades: {}, goldUpgrades: {},
+                     missions: missions.map(m => (m ? { id: m.id, status: m.status } : null)).filter(m => m !== null)
+                 };
+                 for (const id in upgrades) { if (upgrades[id]) saveData.upgrades[id] = { level: upgrades[id].level || 0 }; }
+                 for (const id in goldUpgrades) { if (goldUpgrades[id]?.hasOwnProperty('purchased')) { saveData.goldUpgrades[id] = { purchased: goldUpgrades[id].purchased || false }; } }
+                 localStorage.setItem(SAVE_KEY_V5_4, JSON.stringify(saveData));
+            } catch (error) { console.warn("Błąd zapisu gry:", error); } // Warn zamiast error w pętli
+        }
+
+        function loadGame() {
+            const savedDataString = localStorage.getItem(SAVE_KEY_V5_4);
+            let loadedSuccessfully = false;
+
+            try {
+                 if (savedDataString) {
+                     const loadedData = JSON.parse(savedDataString);
+                     const defaultGameState = { points: 0, gold: 0, totalClicks: 0, bestScore: 0, allTimeBestScore: 0, prestigeLevel: 0, pointFrenzyActive: false, pointFrenzyEndTime: 0, lastUpdateTimestamp: Date.now(), unlockedSkinIds: ['default'], activeSkinId: 'default', unlockedThemeIds: ['default'], activeThemeId: 'default' };
+                     gameState = { ...defaultGameState, ...(loadedData.gameState || {}) };
+
+                     // Walidacje
+                     if (!Array.isArray(gameState.unlockedSkinIds)) gameState.unlockedSkinIds = ['default']; else if (!gameState.unlockedSkinIds.includes('default')) gameState.unlockedSkinIds.push('default');
+                     if (!gameState.activeSkinId || !gameState.unlockedSkinIds.includes(gameState.activeSkinId)) gameState.activeSkinId = 'default';
+                     if (!gameState.unlockedThemeIds) gameState.unlockedThemeIds = ['default']; else if (!gameState.unlockedThemeIds.includes('default')) gameState.unlockedThemeIds.push('default');
+                     if (!gameState.activeThemeId || !gameState.unlockedThemeIds.includes(gameState.activeThemeId)) gameState.activeThemeId = 'default';
+
+                     // Wczytanie ulepszeń i bonusów
+                     for (const id in upgrades) { if (upgrades[id]) upgrades[id].level = loadedData.upgrades?.[id]?.level || 0; }
+                     for (const id in goldUpgrades) { if (goldUpgrades[id]?.hasOwnProperty('purchased')) { goldUpgrades[id].purchased = loadedData.goldUpgrades?.[id]?.purchased || false; } }
+
+                     // Przywróć maxChance
+                     if(getSafePurchased(goldUpgrades.luckyCapIncrease) && upgrades.luckyClick) upgrades.luckyClick.maxChance = 0.75; else if (upgrades.luckyClick) upgrades.luckyClick.maxChance = 0.6;
+                     if(getSafePurchased(goldUpgrades.criticalCapIncrease) && upgrades.criticalClick) upgrades.criticalClick.maxChance = 0.20; else if (upgrades.criticalClick) upgrades.criticalClick.maxChance = 0.15;
+
+                     // Punkty offline
+                     let maxOfflineHours = 8;
+                     const offlineTimeSeconds = (Date.now() - (gameState.lastUpdateTimestamp || Date.now())) / 1000;
+                     if (offlineTimeSeconds > 10) {
+                         const offlinePPS = calculatePPS();
+                         const maxOfflineSeconds = 3600 * maxOfflineHours;
+                         const offlinePoints = Math.floor(Math.min(offlinePPS * offlineTimeSeconds, offlinePPS * maxOfflineSeconds));
+                         if (offlinePoints > 0 && !isNaN(offlinePoints)) {
+                             gameState.points = (gameState.points || 0) + offlinePoints;
+                             showNotification(`Witaj z powrotem! Zdobyłeś ${formatNumber(offlinePoints)} punktów offline (${maxOfflineHours}h max).`, 'info', 5000);
+                         }
+                     }
+                     gameState.points = Math.floor(gameState.points || 0);
+
+                     // Wczytanie misji
+                     if (loadedData.missions && Array.isArray(loadedData.missions)) { const savedStatuses = {}; loadedData.missions.forEach(sm => { if(sm && sm.id !== undefined) savedStatuses[sm.id] = sm.status; }); missions.forEach(mission => { if (mission) mission.status = savedStatuses[mission.id] !== undefined ? savedStatuses[mission.id] : 0; }); } else { missions.forEach(m => {if (m) m.status = 0; }); }
+
+                     gameState.lastUpdateTimestamp = Date.now();
+                     console.log("Game Loaded (v5.4)");
+                     loadedSuccessfully = true;
+                 }
+            } catch (error) {
+                 console.error("Error loading saved game:", error);
+                 localStorage.removeItem(SAVE_KEY_V5_4);
+                 showNotification("Błąd odczytu zapisu v5.4. Resetowanie gry.", 'error', 5000);
+            }
+
+            if (!loadedSuccessfully) {
+                 gameState = { points: 0, gold: 0, totalClicks: 0, bestScore: 0, allTimeBestScore: 0, prestigeLevel: 0, pointFrenzyActive: false, pointFrenzyEndTime: 0, lastUpdateTimestamp: Date.now(), unlockedSkinIds: ['default'], activeSkinId: 'default', unlockedThemeIds: ['default'], activeThemeId: 'default' };
+                 Object.values(upgrades).forEach(u => { if (u) u.level = 0; });
+                 Object.values(goldUpgrades).forEach(u => { if(u?.hasOwnProperty('purchased')) u.purchased = false; });
+                 missions.forEach(m => { if (m) m.status = 0; });
+                 if (upgrades.luckyClick) upgrades.luckyClick.maxChance = 0.6;
+                 if (upgrades.criticalClick) upgrades.criticalClick.maxChance = 0.15;
+                 console.log("Starting new game (v5.4) or reset after error.");
+            }
+            // Zawsze wykonaj te kroki po załadowaniu lub resecie
+            checkMissionCompletion();
+            updateDisplay(); // Wyświetl stan początkowy
+        }
+
+        // --- Powiadomienia ---
+        function showNotification(message, type = 'info', duration = 3000) {
+             try {
+                 if (!dom.notificationBar) return;
+                 if (notificationTimeout) { clearTimeout(notificationTimeout); dom.notificationBar.className = ''; }
+                 void dom.notificationBar.offsetWidth;
+                 dom.notificationBar.textContent = message;
+                 dom.notificationBar.classList.add('show', type);
+                 notificationTimeout = setTimeout(() => { if(dom.notificationBar) dom.notificationBar.classList.remove('show'); }, duration); // Bezpieczny dostęp w timeout
+             } catch(e) { console.error("Błąd w showNotification:", e); }
+        }
+
+        // --- Logika Menu Cheatów ---
+        const cheatCode = 'kupa';
+        function handleSecretCodeInput(event) { if (event.target.value.toLowerCase() === cheatCode) { openCheatMenu(); event.target.value = ''; event.target.blur(); } }
+        function openCheatMenu() { console.log("Cheat menu activated!"); if(dom.cheatMenu) { dom.cheatPointsInput.value = ''; dom.cheatGoldInput.value = ''; dom.cheatMenu.style.display = 'block'; } }
+        function closeCheatMenu() { if(dom.cheatMenu) dom.cheatMenu.style.display = 'none'; }
+        function addCheatPoints() { const amount = parseInt(dom.cheatPointsInput.value) || 0; if (amount !== 0) { gameState.points = Math.max(0, Math.floor(gameState.points) + amount); showNotification(`${amount > 0 ? 'Dodano' : 'Odjęto'} ${formatNumber(Math.abs(amount))} punktów (cheat).`, amount > 0 ? 'success' : 'warning'); updateDisplay(); dom.cheatPointsInput.value = ''; } else { showNotification("Wpisz poprawną, niezerową liczbę punktów.", 'warning'); } }
+        function addCheatGold() { const amount = parseInt(dom.cheatGoldInput.value) || 0; if (amount !== 0) { gameState.gold = Math.max(0, gameState.gold + amount); showNotification(`${amount > 0 ? 'Dodano' : 'Odjęto'} ${formatNumber(Math.abs(amount))} złota (cheat).`, amount > 0 ? 'success' : 'warning'); updateDisplay(); dom.cheatGoldInput.value = ''; } else { showNotification("Wpisz poprawną, niezerową liczbę złota.", 'warning'); } }
+        function cheatMaxAll() {
+            try {
+                 const maxPointLevel = 500;
+                 console.log("Cheat: Maxing all upgrades...");
+                 for (const id in upgrades) { if (upgrades[id]) upgrades[id].level = maxPointLevel; }
+                 console.log(`Point upgrades set to level ${maxPointLevel}`);
+                 let goldUpgradesPurchased = 0;
+                 for (const id in goldUpgrades) {
+                     const upg = goldUpgrades[id];
+                     if (upg && !upg.isOneTime && upg.hasOwnProperty('purchased') && !getSafePurchased(upg)) {
+                         upg.purchased = true;
+                         if (id === 'luckyCapIncrease' && upgrades.luckyClick) upgrades.luckyClick.maxChance = 0.75;
+                         if (id === 'criticalCapIncrease' && upgrades.criticalClick) upgrades.criticalClick.maxChance = 0.20;
+                         goldUpgradesPurchased++;
+                     }
+                 }
+                 console.log(`Purchased ${goldUpgradesPurchased} permanent gold upgrades.`);
+                 // Odblokuj i aktywuj motyw Galaktyka
+                 if (themes.galaxy && !gameState.unlockedThemeIds?.includes('galaxy')) {
+                     gameState.unlockedThemeIds.push('galaxy');
+                 }
+                 gameState.activeThemeId = 'galaxy';
+                 console.log("Galaxy theme unlocked and activated.");
+
+                 gameState.points = Math.max(gameState.points || 0, 1e15);
+                 gameState.gold = Math.max(gameState.gold || 0, 1000);
+                 showNotification(`Wszystkie ulepszenia zmaksymalizowane (cheat)!`, 'success');
+                 checkMissionCompletion();
+                 updateDisplay();
+            } catch(e) { console.error("Błąd w cheatMaxAll:", e); showNotification("Błąd podczas maxowania!", "error"); }
+        }
+
+
+        // --- Inicjalizacja Gry ---
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOMContentLoaded event fired.");
+            try {
+                 // Inicjalizacja obiektu dom
+                 dom = {
+                     points: document.getElementById('points'), gold: document.getElementById('gold'), totalClicks: document.getElementById('totalClicks'), ppc: document.getElementById('ppc'), pps: document.getElementById('pps'), prestigeMultiplier: document.getElementById('prestigeMultiplier'), discountPercentage: document.getElementById('discountPercentage'), frenzyTimer: document.getElementById('frenzyTimer'), frenzyTimeLeft: document.getElementById('frenzyTimeLeft'), bestScore: document.getElementById('bestScore'), allTimeBestScore: document.getElementById('allTimeBestScore'), clickerBtn: document.getElementById('clickerBtn'), upgradesContainer: document.getElementById('upgradesContainer'), goldUpgradesContainer: document.getElementById('goldUpgradesContainer'), skinsContainer: document.getElementById('skinsContainer'), themesContainer: document.getElementById('themesContainer'), prestigeBtn: document.getElementById('prestigeBtn'), prestigeCost: document.getElementById('prestigeCost'), prestigeGoldReward: document.getElementById('prestigeGoldReward'), prestigeMultiplierValue: document.getElementById('prestigeMultiplierValue'), nextPrestigeMultiplierValue: document.getElementById('nextPrestigeMultiplierValue'), prestigeStartBonusInfo: document.getElementById('prestigeStartBonusInfo'), prestigeStartBonusLevel: document.getElementById('prestigeStartBonusLevel'), missionsContainer: document.getElementById('missionsContainer'), ranking: document.querySelector('.ranking'), notificationBar: document.getElementById('notification-bar'), secretCodeInput: document.getElementById('secretCodeInput'), cheatMenu: document.getElementById('cheatMenu'), cheatPointsInput: document.getElementById('cheatPoints'), cheatGoldInput: document.getElementById('cheatGold'), cheatAddPointsBtn: document.getElementById('cheatAddPointsBtn'), cheatAddGoldBtn: document.getElementById('cheatAddGoldBtn'), cheatMaxAllBtn: document.getElementById('cheatMaxAllBtn'), cheatCloseBtn: document.getElementById('cheatCloseBtn')
+                 };
+                 console.log("DOM elements cached.");
+
+                 // Sprawdź kluczowe elementy
+                 let missingElements = [];
+                 for (const key in dom) { if (!dom[key]) { missingElements.push(key); } }
+                 if (missingElements.length > 0) { throw new Error(`Nie znaleziono elementów DOM: ${missingElements.join(', ')}`); }
+
+                 loadGame(); // Wczytaj stan gry PRZED dodaniem listenerów i pętli
+
+                 // Dodaj listenery tylko jeśli elementy istnieją
+                 dom.clickerBtn.addEventListener('click', clickButton);
+                 dom.prestigeBtn.addEventListener('click', prestige);
+                 dom.secretCodeInput.addEventListener('input', handleSecretCodeInput);
+                 dom.cheatAddPointsBtn.addEventListener('click', addCheatPoints);
+                 dom.cheatAddGoldBtn.addEventListener('click', addCheatGold);
+                 dom.cheatMaxAllBtn.addEventListener('click', cheatMaxAll);
+                 dom.cheatCloseBtn.addEventListener('click', closeCheatMenu);
+                 console.log("Event listeners added.");
+
+                 // Uruchom pętle gry
+                 setInterval(gameLoop, 1000);
+                 setInterval(frequentUpdate, 200);
+                 setInterval(saveGame, 5000);
+                 console.log("Game loops started.");
+
+            } catch(e) {
+                 console.error("!!! KRYTYCZNY BŁĄD INICJALIZACJI !!!", e);
+                 alert(`Wystąpił krytyczny błąd podczas ładowania gry: ${e.message}. Gra może nie działać poprawnie. Sprawdź konsolę deweloperską (F12) po szczegóły.`);
+                 try { localStorage.removeItem(SAVE_KEY_V5_4); } catch(e2) {} // Próba resetu zapisu
+            }
+        });
+
+        console.log("Script execution finished.");
+    </script>
+</body>
+</html>
