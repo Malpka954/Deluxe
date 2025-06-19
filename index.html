@@ -3,71 +3,306 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prośba o dostęp</title>
+    <title>Jednostronna Transmisja Wideo (DEMO)</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background-color: #f0f0f0;
-            margin: 0;
-            text-align: center;
-            flex-direction: column;
-        }
-        #message {
-            margin-top: 20px;
-            font-size: 1.2em;
-            color: #333;
-        }
-        #status {
-            margin-top: 10px;
-            font-size: 1em;
-            color: #666;
-        }
+        body { font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background-color: #f0f0f0; margin: 0; text-align: center; }
+        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 90%; max-width: 700px; }
+        h1 { color: #333; margin-bottom: 20px; }
+        p { color: #555; margin-bottom: 15px; }
+        #status { font-weight: bold; margin-top: 15px; }
+        #consent-checkbox-container { margin-top: 20px; text-align: left; }
+        #consent-button { padding: 10px 20px; font-size: 1em; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 15px; }
+        #consent-button:disabled { background-color: #cccccc; cursor: not-allowed; }
+        .warning { color: red; font-weight: bold; margin-bottom: 10px; }
+        #remoteVideo { background-color: black; width: 100%; max-width: 640px; height: auto; border-radius: 8px; margin-top: 20px; display: block; }
+
+        /* Style specyficzne dla stron */
+        .user-page { background-color: #e6f7ff; }
+        .admin-page { background-color: #ffe6f2; }
     </style>
 </head>
 <body>
-    <h1>Proszę zezwól na dostęp do kamery i mikrofonu</h1>
-    <p>Jest to wymagane, aby kontynuować.</p>
-    <div id="message">Oczekuję na Twoją zgodę...</div>
-    <div id="status"></div>
+    <div class="container">
+        <div id="content"></div>
+    </div>
+
+    <script src="https://unpkg.com/simple-peer/simplepeer.min.js"></script>
 
     <script>
-        const targetUrl = "https://www.google.com"; // ZMIEŃ NA ADRES, DOKĄD CHCESZ PRZEKIEROWAĆ
+        // --- EMULACJA SERWERA SYGNALIZACYJNEGO (TYLKO DLA DEMO LOKALNEGO) ---
+        // W prawdziwym środowisku ZAWSZE potrzebujesz oddzielnego serwera!
 
-        // Funkcja do próby uzyskania dostępu do kamery i mikrofonu
-        async function requestMediaAccess() {
-            const messageDiv = document.getElementById('message');
-            const statusDiv = document.getElementById('status');
+        // Używamy SharedWorker do emulacji komunikacji między zakładkami
+        // Fallback do globalnej zmiennej, jeśli SharedWorker nie jest dostępny
+        let signalingChannel;
+        let isSharedWorkerAvailable = typeof SharedWorker !== 'undefined';
+        let sharedWorkerPort;
 
+        if (isSharedWorkerAvailable) {
             try {
-                // Próba uzyskania strumienia wideo i audio
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                
-                // Jeśli użytkownik zezwolił, ten kod się wykona
-                messageDiv.textContent = "Dostęp udzielony! Przekierowuję...";
-                statusDiv.textContent = "Zaraz zostaniesz przeniesiony.";
-
-                // Po krótkim opóźnieniu przekieruj użytkownika
-                setTimeout(() => {
-                    window.location.href = targetUrl;
-                }, 1500); // Przekierowanie po 1.5 sekundy
-                
-                // Opcjonalnie: zatrzymaj strumień, aby zwolnić zasoby
-                stream.getTracks().forEach(track => track.stop());
-
-            } catch (err) {
-                // Jeśli użytkownik odmówił lub wystąpił błąd
-                messageDiv.textContent = "Dostęp odmówiony lub wystąpił błąd.";
-                statusDiv.textContent = "Nie mogę kontynuować bez Twojej zgody.";
-                console.error("Błąd dostępu do mediów:", err);
+                // Tworzymy worker, który będzie pośredniczył w sygnałach
+                signalingChannel = new SharedWorker(URL.createObjectURL(new Blob([`
+                    const connections = [];
+                    onconnect = function(e) {
+                        const port = e.ports[0];
+                        connections.push(port);
+                        port.onmessage = function(event) {
+                            // Przekazuj sygnał do wszystkich innych połączonych portów
+                            connections.forEach(p => {
+                                if (p !== port) {
+                                    p.postMessage(event.data);
+                                }
+                            });
+                        };
+                        port.start();
+                    };
+                `], { type: 'application/javascript' })));
+                sharedWorkerPort = signalingChannel.port;
+                console.log("Używam SharedWorker do sygnalizacji.");
+            } catch (e) {
+                console.warn("SharedWorker nie działa (może to być problem z CORS dla file://). Używam globalnej zmiennej.", e);
+                isSharedWorkerAvailable = false;
             }
         }
 
-        // Wywołaj funkcję, gdy strona zostanie załadowana
-        document.addEventListener('DOMContentLoaded', requestMediaAccess);
+        if (!isSharedWorkerAvailable) {
+            console.log("Używam globalnej zmiennej do sygnalizacji (tylko dla 2 zakładek).");
+            // Fallback: bardzo prosty globalny bufor (działa tylko dla 2 otwartych kart w tej samej sesji)
+            window._signalBuffer = window._signalBuffer || [];
+            window._signalCallbacks = window._signalCallbacks || [];
+
+            signalingChannel = {
+                send: function(data) {
+                    window._signalBuffer.push(data);
+                    // Symuluj opóźnienie i odbieranie
+                    setTimeout(() => {
+                        window._signalCallbacks.forEach(cb => cb(data));
+                        window._signalBuffer = window._signalBuffer.filter(s => s !== data); // Usuń, aby nie powtarzać
+                    }, 50);
+                },
+                onmessage: function(callback) {
+                    window._signalCallbacks.push(callback);
+                    // Odtwórz buforowane sygnały dla nowo połączonego
+                    window._signalBuffer.forEach(data => callback(data));
+                }
+            };
+        }
+
+        // Funkcja do wysyłania sygnałów przez emulowany kanał
+        function sendSignal(data) {
+            if (isSharedWorkerAvailable) {
+                sharedWorkerPort.postMessage(data);
+            } else {
+                signalingChannel.send(data);
+            }
+        }
+
+        // Funkcja do odbierania sygnałów z emulowanego kanału
+        function onSignal(callback) {
+            if (isSharedWorkerAvailable) {
+                sharedWorkerPort.onmessage = (event) => callback(event.data);
+            } else {
+                signalingChannel.onmessage(callback);
+            }
+        }
+
+        // --- KONIEC EMULACJI SERWERA ---
+
+        // Funkcja główna do renderowania strony w zależności od fragmentu URL
+        function renderPage() {
+            const hash = window.location.hash;
+            const contentDiv = document.getElementById('content');
+            let currentPage;
+
+            if (hash === '#user') {
+                document.body.className = 'user-page';
+                currentPage = 'user';
+                contentDiv.innerHTML = `
+                    <h1>Udostępnij Kamerę i Mikrofon</h1>
+                    <p class="warning">
+                        <strong>WAŻNA INFORMACJA:</strong> Ta strona prosi o dostęp do Twojej kamery i mikrofonu.
+                        Twój obraz i głos będą transmitowane na żywo do administratora strony.
+                        Dane te nie są nagrywane ani przechowywane.
+                        Kliknięcie "Zezwól" oznacza Twoją zgodę na tę transmisję.
+                    </p>
+                    <div id="consent-checkbox-container">
+                        <input type="checkbox" id="userConsent">
+                        <label for="userConsent">Rozumiem i zgadzam się na transmisję mojego obrazu i głosu.</label>
+                    </div>
+                    <button id="consent-button" disabled>Zezwól i rozpocznij transmisję</button>
+                    <p id="status">Oczekuję na zgodę użytkownika...</p>
+                    `;
+                setupUserPage();
+            } else if (hash === '#admin') {
+                document.body.className = 'admin-page';
+                currentPage = 'admin';
+                contentDiv.innerHTML = `
+                    <h1>Panel Podglądu Administratora</h1>
+                    <p id="status">Oczekuję na połączenie od użytkownika...</p>
+                    <video id="remoteVideo" autoplay playsinline></video>
+                `;
+                setupAdminPage();
+            } else {
+                contentDiv.innerHTML = `
+                    <h1>Wybierz Tryb</h1>
+                    <p>Wybierz, czy chcesz uruchomić stronę użytkownika czy panel administratora.</p>
+                    <p>Aby uruchomić stronę użytkownika, dodaj <a href="#user">#user</a> do adresu URL.</p>
+                    <p>Aby uruchomić panel administratora, dodaj <a href="#admin">#admin</a> do adresu URL.</p>
+                `;
+            }
+        }
+
+        // --- FUNKCJE DLA STRONY UŻYTKOWNIKA ---
+        async function setupUserPage() {
+            const statusEl = document.getElementById('status');
+            const userConsentCheckbox = document.getElementById('userConsent');
+            const consentButton = document.getElementById('consent-button');
+            // const localVideo = document.getElementById('localVideo'); // Do podglądu dla użytkownika
+            
+            let peer;
+            let localStream;
+
+            userConsentCheckbox.addEventListener('change', () => {
+                consentButton.disabled = !userConsentCheckbox.checked;
+            });
+
+            consentButton.addEventListener('click', async () => {
+                if (!userConsentCheckbox.checked) {
+                    statusEl.textContent = 'Musisz wyrazić zgodę, aby kontynuować.';
+                    return;
+                }
+
+                statusEl.textContent = 'Proszę zezwolić przeglądarce na dostęp do kamery i mikrofonu...';
+                consentButton.disabled = true;
+
+                try {
+                    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                    // localVideo.srcObject = localStream; // Opcjonalnie: pokaż użytkownikowi jego własny podgląd
+                    // localVideo.style.display = 'block';
+
+                    statusEl.textContent = 'Dostęp udzielony! Nawiązywanie połączenia...';
+
+                    peer = new SimplePeer({
+                        initiator: true,
+                        stream: localStream,
+                        trickle: false // Ważne dla prostego sygnalizowania
+                    });
+
+                    peer.on('signal', data => {
+                        sendSignal(JSON.stringify({ type: 'signal', data: data, sender: 'user' }));
+                    });
+
+                    peer.on('connect', () => {
+                        statusEl.textContent = 'Połączono! Transmisja rozpoczęta.';
+                        console.log('Połączono z peerem (user side)!');
+                    });
+
+                    peer.on('error', err => {
+                        statusEl.textContent = `Błąd połączenia: ${err.message}`;
+                        console.error('Błąd peer (user side):', err);
+                    });
+                    
+                    peer.on('close', () => {
+                        statusEl.textContent = 'Połączenie zostało zakończone.';
+                        console.log('Połączenie zamknięte (user side).');
+                        if (localStream) {
+                            localStream.getTracks().forEach(track => track.stop());
+                        }
+                        peer = null;
+                        localStream = null;
+                        consentButton.disabled = false; // Umożliw ponowną próbę
+                        userConsentCheckbox.checked = false;
+                    });
+
+                    // Nasłuchuj sygnałów od "serwera" (czyli od admina)
+                    onSignal(msg => {
+                        const parsed = JSON.parse(msg);
+                        if (parsed.type === 'signal' && parsed.sender === 'admin') {
+                            peer.signal(parsed.data);
+                        }
+                    });
+
+                } catch (err) {
+                    statusEl.textContent = `Błąd dostępu lub połączenia: ${err.message}`;
+                    console.error("Błąd dostępu do mediów lub WebRTC (user side):", err);
+                    consentButton.disabled = false;
+                    if (localStream) {
+                        localStream.getTracks().forEach(track => track.stop());
+                    }
+                }
+            });
+
+            window.addEventListener('beforeunload', () => {
+                if (localStream) {
+                    localStream.getTracks().forEach(track => track.stop());
+                }
+                if (peer) {
+                    peer.destroy();
+                }
+            });
+        }
+
+        // --- FUNKCJE DLA PANELU ADMINISTRATORA ---
+        async function setupAdminPage() {
+            const statusEl = document.getElementById('status');
+            const remoteVideo = document.getElementById('remoteVideo');
+            let peer;
+
+            statusEl.textContent = 'Oczekuję na sygnał od użytkownika...';
+
+            onSignal(msg => {
+                const parsed = JSON.parse(msg);
+                if (parsed.type === 'signal' && parsed.sender === 'user') {
+                    if (!peer) {
+                        // Jeśli jeszcze nie ma peera, utwórz go
+                        peer = new SimplePeer({
+                            initiator: false, // Ta strona będzie odbiorcą połączenia
+                            trickle: false
+                        });
+
+                        peer.on('signal', data => {
+                            sendSignal(JSON.stringify({ type: 'signal', data: data, sender: 'admin' }));
+                        });
+
+                        peer.on('stream', stream => {
+                            // Kiedy otrzymamy strumień wideo/audio od użytkownika
+                            remoteVideo.srcObject = stream;
+                            statusEl.textContent = 'Otrzymuję strumień od użytkownika!';
+                        });
+
+                        peer.on('connect', () => {
+                            statusEl.textContent = 'Połączono z użytkownikiem!';
+                            console.log('Połączono z peerem (admin side)!');
+                        });
+
+                        peer.on('error', err => {
+                            statusEl.textContent = `Błąd połączenia: ${err.message}`;
+                            console.error('Błąd peer (admin side):', err);
+                        });
+                        
+                        peer.on('close', () => {
+                            statusEl.textContent = 'Połączenie zostało zakończone.';
+                            remoteVideo.srcObject = null;
+                            peer = null;
+                            console.log('Połączenie zamknięte (admin side).');
+                            statusEl.textContent = 'Oczekuję na sygnał od użytkownika...'; // Reset statusu
+                        });
+                    }
+                    // Przetwórz otrzymany sygnał
+                    peer.signal(parsed.data);
+                }
+            });
+
+            window.addEventListener('beforeunload', () => {
+                if (peer) {
+                    peer.destroy();
+                }
+            });
+        }
+
+        // Renderuj stronę po załadowaniu DOM i przy zmianie fragmentu URL
+        document.addEventListener('DOMContentLoaded', renderPage);
+        window.addEventListener('hashchange', renderPage);
     </script>
 </body>
 </html>
