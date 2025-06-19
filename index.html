@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jednostronna Transmisja Wideo (DEMO)</title>
+    <title>Jednostronna Transmisja Wideo (Naprawione DEMO)</title>
     <style>
         body { font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background-color: #f0f0f0; margin: 0; text-align: center; }
         .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 90%; max-width: 700px; }
@@ -14,7 +14,7 @@
         #consent-button { padding: 10px 20px; font-size: 1em; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 15px; }
         #consent-button:disabled { background-color: #cccccc; cursor: not-allowed; }
         .warning { color: red; font-weight: bold; margin-bottom: 10px; }
-        #remoteVideo { background-color: black; width: 100%; max-width: 640px; height: auto; border-radius: 8px; margin-top: 20px; display: block; }
+        #remoteVideo, #localVideo { background-color: black; width: 100%; max-width: 640px; height: auto; border-radius: 8px; margin-top: 20px; display: block; }
 
         /* Style specyficzne dla stron */
         .user-page { background-color: #e6f7ff; }
@@ -29,81 +29,33 @@
     <script src="https://unpkg.com/simple-peer/simplepeer.min.js"></script>
 
     <script>
-        // --- EMULACJA SERWERA SYGNALIZACYJNEGO (TYLKO DLA DEMO LOKALNEGO) ---
-        // W prawdziwym środowisku ZAWSZE potrzebujesz oddzielnego serwera!
+        // --- UPROSZCZONA EMULACJA SERWERA SYGNALIZACYJNEGO (TYLKO DLA DEMO LOKALNEGO) ---
+        // W prawdziwym środowisku ZAWSZE potrzebujesz oddzielnego serwera z HTTPS!
+        // Ta wersja używa globalnej zmiennej do komunikacji między dwiema kartami otwartymi z tego samego pliku.
 
-        // Używamy SharedWorker do emulacji komunikacji między zakładkami
-        // Fallback do globalnej zmiennej, jeśli SharedWorker nie jest dostępny
-        let signalingChannel;
-        let isSharedWorkerAvailable = typeof SharedWorker !== 'undefined';
-        let sharedWorkerPort;
+        window._signalQueue = window._signalQueue || []; // Bufor sygnałów
+        window._signalListeners = window._signalListeners || []; // Lista funkcji nasłuchujących
 
-        if (isSharedWorkerAvailable) {
-            try {
-                // Tworzymy worker, który będzie pośredniczył w sygnałach
-                signalingChannel = new SharedWorker(URL.createObjectURL(new Blob([`
-                    const connections = [];
-                    onconnect = function(e) {
-                        const port = e.ports[0];
-                        connections.push(port);
-                        port.onmessage = function(event) {
-                            // Przekazuj sygnał do wszystkich innych połączonych portów
-                            connections.forEach(p => {
-                                if (p !== port) {
-                                    p.postMessage(event.data);
-                                }
-                            });
-                        };
-                        port.start();
-                    };
-                `], { type: 'application/javascript' })));
-                sharedWorkerPort = signalingChannel.port;
-                console.log("Używam SharedWorker do sygnalizacji.");
-            } catch (e) {
-                console.warn("SharedWorker nie działa (może to być problem z CORS dla file://). Używam globalnej zmiennej.", e);
-                isSharedWorkerAvailable = false;
-            }
-        }
-
-        if (!isSharedWorkerAvailable) {
-            console.log("Używam globalnej zmiennej do sygnalizacji (tylko dla 2 zakładek).");
-            // Fallback: bardzo prosty globalny bufor (działa tylko dla 2 otwartych kart w tej samej sesji)
-            window._signalBuffer = window._signalBuffer || [];
-            window._signalCallbacks = window._signalCallbacks || [];
-
-            signalingChannel = {
-                send: function(data) {
-                    window._signalBuffer.push(data);
-                    // Symuluj opóźnienie i odbieranie
-                    setTimeout(() => {
-                        window._signalCallbacks.forEach(cb => cb(data));
-                        window._signalBuffer = window._signalBuffer.filter(s => s !== data); // Usuń, aby nie powtarzać
-                    }, 50);
-                },
-                onmessage: function(callback) {
-                    window._signalCallbacks.push(callback);
-                    // Odtwórz buforowane sygnały dla nowo połączonego
-                    window._signalBuffer.forEach(data => callback(data));
-                }
-            };
-        }
-
-        // Funkcja do wysyłania sygnałów przez emulowany kanał
         function sendSignal(data) {
-            if (isSharedWorkerAvailable) {
-                sharedWorkerPort.postMessage(data);
-            } else {
-                signalingChannel.send(data);
-            }
+            // Dodaj sygnał do kolejki
+            window._signalQueue.push(data);
+            console.log("Sygnał wysłany:", data);
+            
+            // Powiadom wszystkich słuchaczy (z lekkim opóźnieniem, aby symulować sieć)
+            setTimeout(() => {
+                window._signalListeners.forEach(listener => listener(data));
+                // Opcjonalnie: usuń sygnał z kolejki po przetworzeniu, aby nie powtarzać
+                // Dla tego prostego demo, możemy pozwolić mu zostać, aby nowa karta mogła go odebrać
+            }, 50); 
         }
 
-        // Funkcja do odbierania sygnałów z emulowanego kanału
         function onSignal(callback) {
-            if (isSharedWorkerAvailable) {
-                sharedWorkerPort.onmessage = (event) => callback(event.data);
-            } else {
-                signalingChannel.onmessage(callback);
-            }
+            // Dodaj nową funkcję nasłuchującą
+            window._signalListeners.push(callback);
+            console.log("Nowy słuchacz sygnałów dodany.");
+
+            // Od razu wyślij wszystkie sygnały z bufora do nowego słuchacza
+            window._signalQueue.forEach(signal => callback(signal));
         }
 
         // --- KONIEC EMULACJI SERWERA ---
@@ -112,11 +64,20 @@
         function renderPage() {
             const hash = window.location.hash;
             const contentDiv = document.getElementById('content');
-            let currentPage;
+            
+            // Czyszczenie poprzedniej zawartości i resetowanie peerów przy zmianie strony
+            contentDiv.innerHTML = '';
+            if (window._currentPeer) {
+                window._currentPeer.destroy();
+                window._currentPeer = null;
+            }
+            if (window._currentStream) {
+                window._currentStream.getTracks().forEach(track => track.stop());
+                window._currentStream = null;
+            }
 
             if (hash === '#user') {
                 document.body.className = 'user-page';
-                currentPage = 'user';
                 contentDiv.innerHTML = `
                     <h1>Udostępnij Kamerę i Mikrofon</h1>
                     <p class="warning">
@@ -131,11 +92,12 @@
                     </div>
                     <button id="consent-button" disabled>Zezwól i rozpocznij transmisję</button>
                     <p id="status">Oczekuję na zgodę użytkownika...</p>
-                    `;
+                    <video id="localVideo" autoplay muted style="width: 100%; max-width: 320px;"></video>
+                    <p>Powyżej widzisz podgląd swojej kamery.</p>
+                `;
                 setupUserPage();
             } else if (hash === '#admin') {
                 document.body.className = 'admin-page';
-                currentPage = 'admin';
                 contentDiv.innerHTML = `
                     <h1>Panel Podglądu Administratora</h1>
                     <p id="status">Oczekuję na połączenie od użytkownika...</p>
@@ -148,6 +110,7 @@
                     <p>Wybierz, czy chcesz uruchomić stronę użytkownika czy panel administratora.</p>
                     <p>Aby uruchomić stronę użytkownika, dodaj <a href="#user">#user</a> do adresu URL.</p>
                     <p>Aby uruchomić panel administratora, dodaj <a href="#admin">#admin</a> do adresu URL.</p>
+                    <p><strong>Pamiętaj, aby otworzyć dwie osobne karty przeglądarki, po jednej dla każdego trybu!</strong></p>
                 `;
             }
         }
@@ -157,7 +120,7 @@
             const statusEl = document.getElementById('status');
             const userConsentCheckbox = document.getElementById('userConsent');
             const consentButton = document.getElementById('consent-button');
-            // const localVideo = document.getElementById('localVideo'); // Do podglądu dla użytkownika
+            const localVideo = document.getElementById('localVideo');
             
             let peer;
             let localStream;
@@ -177,19 +140,20 @@
 
                 try {
                     localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                    // localVideo.srcObject = localStream; // Opcjonalnie: pokaż użytkownikowi jego własny podgląd
-                    // localVideo.style.display = 'block';
+                    localVideo.srcObject = localStream;
+                    window._currentStream = localStream; // Zapisz strumień globalnie dla cleanupu
 
                     statusEl.textContent = 'Dostęp udzielony! Nawiązywanie połączenia...';
 
                     peer = new SimplePeer({
-                        initiator: true,
-                        stream: localStream,
-                        trickle: false // Ważne dla prostego sygnalizowania
+                        initiator: true, // Ta strona będzie inicjatorem połączenia
+                        stream: localStream, // Wysyłaj lokalny strumień
+                        trickle: false // Ważne: wysyłaj wszystkie ICE candidates naraz dla prostoty sygnalizacji
                     });
+                    window._currentPeer = peer; // Zapisz peer globalnie dla cleanupu
 
                     peer.on('signal', data => {
-                        sendSignal(JSON.stringify({ type: 'signal', data: data, sender: 'user' }));
+                        sendSignal(JSON.stringify({ type: 'signal', data: data, from: 'user' }));
                     });
 
                     peer.on('connect', () => {
@@ -200,6 +164,14 @@
                     peer.on('error', err => {
                         statusEl.textContent = `Błąd połączenia: ${err.message}`;
                         console.error('Błąd peer (user side):', err);
+                        // cleanup w przypadku błędu
+                        if (localStream) localStream.getTracks().forEach(track => track.stop());
+                        if (peer) peer.destroy();
+                        consentButton.disabled = false;
+                        userConsentCheckbox.checked = false;
+                        localVideo.srcObject = null;
+                        window._currentStream = null;
+                        window._currentPeer = null;
                     });
                     
                     peer.on('close', () => {
@@ -212,26 +184,34 @@
                         localStream = null;
                         consentButton.disabled = false; // Umożliw ponowną próbę
                         userConsentCheckbox.checked = false;
+                        localVideo.srcObject = null;
+                        window._currentStream = null;
+                        window._currentPeer = null;
                     });
 
                     // Nasłuchuj sygnałów od "serwera" (czyli od admina)
                     onSignal(msg => {
                         const parsed = JSON.parse(msg);
-                        if (parsed.type === 'signal' && parsed.sender === 'admin') {
+                        if (parsed.type === 'signal' && parsed.from === 'admin' && peer) {
+                            console.log("Odebrano sygnał od admina (user side).");
                             peer.signal(parsed.data);
                         }
                     });
 
                 } catch (err) {
-                    statusEl.textContent = `Błąd dostępu lub połączenia: ${err.message}`;
+                    statusEl.textContent = `Błąd dostępu lub połączenia: ${err.message}. Sprawdź konsolę.`;
                     console.error("Błąd dostępu do mediów lub WebRTC (user side):", err);
                     consentButton.disabled = false;
                     if (localStream) {
                         localStream.getTracks().forEach(track => track.stop());
                     }
+                    localVideo.srcObject = null;
+                    window._currentStream = null;
+                    window._currentPeer = null;
                 }
             });
 
+            // Cleanup przy zamknięciu/przeładowaniu karty
             window.addEventListener('beforeunload', () => {
                 if (localStream) {
                     localStream.getTracks().forEach(track => track.stop());
@@ -252,22 +232,24 @@
 
             onSignal(msg => {
                 const parsed = JSON.parse(msg);
-                if (parsed.type === 'signal' && parsed.sender === 'user') {
+                if (parsed.type === 'signal' && parsed.from === 'user') {
                     if (!peer) {
                         // Jeśli jeszcze nie ma peera, utwórz go
                         peer = new SimplePeer({
                             initiator: false, // Ta strona będzie odbiorcą połączenia
                             trickle: false
                         });
+                        window._currentPeer = peer; // Zapisz peer globalnie dla cleanupu
 
                         peer.on('signal', data => {
-                            sendSignal(JSON.stringify({ type: 'signal', data: data, sender: 'admin' }));
+                            sendSignal(JSON.stringify({ type: 'signal', data: data, from: 'admin' }));
                         });
 
                         peer.on('stream', stream => {
                             // Kiedy otrzymamy strumień wideo/audio od użytkownika
                             remoteVideo.srcObject = stream;
                             statusEl.textContent = 'Otrzymuję strumień od użytkownika!';
+                            console.log('Odebrano strumień (admin side)!');
                         });
 
                         peer.on('connect', () => {
@@ -278,6 +260,11 @@
                         peer.on('error', err => {
                             statusEl.textContent = `Błąd połączenia: ${err.message}`;
                             console.error('Błąd peer (admin side):', err);
+                            // cleanup w przypadku błędu
+                            if (peer) peer.destroy();
+                            remoteVideo.srcObject = null;
+                            window._currentPeer = null;
+                            statusEl.textContent = 'Błąd. Oczekuję na nowy sygnał od użytkownika...';
                         });
                         
                         peer.on('close', () => {
@@ -286,6 +273,7 @@
                             peer = null;
                             console.log('Połączenie zamknięte (admin side).');
                             statusEl.textContent = 'Oczekuję na sygnał od użytkownika...'; // Reset statusu
+                            window._currentPeer = null;
                         });
                     }
                     // Przetwórz otrzymany sygnał
@@ -293,6 +281,7 @@
                 }
             });
 
+            // Cleanup przy zamknięciu/przeładowaniu karty
             window.addEventListener('beforeunload', () => {
                 if (peer) {
                     peer.destroy();
